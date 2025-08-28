@@ -71,6 +71,7 @@ defmodule AshClickhouse.DataLayer do
   def can?(_, :sort), do: true
   def can?(_, {:sort, _}), do: true
   def can?(_, :count), do: true
+  def can?(_, {:count, _}), do: true
   def can?(_, :limit), do: true
   def can?(_, :offset), do: true
   def can?(_, :aggregate), do: true
@@ -100,11 +101,14 @@ defmodule AshClickhouse.DataLayer do
           )
     }
 
+    repo_opts = Map.get(changeset.context, :repo_opts, [])
+
     case bulk_create(resource, [changeset], %{
            single?: true,
            tenant: Map.get(changeset, :to_tenant, changeset.tenant),
            action_select: changeset.action_select,
-           return_records?: true
+           return_records?: true,
+           repo_opts: repo_opts
          }) do
       {:ok, [result]} ->
         {:ok, result}
@@ -140,7 +144,11 @@ defmodule AshClickhouse.DataLayer do
 
     repo = AshSql.dynamic_repo(resource, SqlImplementation, Enum.at(changesets, 0))
 
-    opts = AshSql.repo_opts(repo, SqlImplementation, nil, options[:tenant], resource)
+    opts =
+      repo
+      |> AshSql.repo_opts(SqlImplementation, nil, options[:tenant], resource)
+      |> Keyword.merge(options[:repo_opts] || [])
+      |> dbg()
 
     source = resolve_source(resource, Enum.at(changesets, 0))
 

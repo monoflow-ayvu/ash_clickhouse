@@ -30,7 +30,19 @@ defmodule AshClickhouse.Type.ChDateTime do
   use Ash.Type
   require AshClickhouse.Type.Helper
 
-  AshClickhouse.Type.Helper.graphql_type(__MODULE__, :ch_datetime, :naive_datetime)
+  def graphql_type(constraints) do
+    case Keyword.get(constraints, :timezone) do
+      nil -> :naive_datetime
+      _timezone -> :datetime
+    end
+  end
+
+  def graphql_input_type(constraints) do
+    case Keyword.get(constraints, :timezone) do
+      nil -> :naive_datetime
+      _timezone -> :datetime
+    end
+  end
 
   @impl true
   def constraints, do: @constraints

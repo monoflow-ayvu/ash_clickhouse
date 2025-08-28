@@ -39,6 +39,8 @@ for size <- [8, 16, 32, 64, 128, 256] do
 
     if size in [8, 16, 32] do
       AshClickhouse.Type.Helper.graphql_type(__MODULE__, :"ch_int#{unquote(size)}", :integer)
+    else
+      AshClickhouse.Type.Helper.graphql_type(__MODULE__, :"ch_int#{unquote(size)}", :string)
     end
 
     @impl true
