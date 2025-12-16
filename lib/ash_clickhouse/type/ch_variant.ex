@@ -62,16 +62,9 @@ defmodule AshClickhouse.Type.ChVariant do
   def ch_type(constraints) do
     constraints[:types]
     |> Enum.map(&get_type/1)
-    |> fixed_variant()
+    |> Ch.Types.variant()
     |> maybe_nullable(constraints[:nullable?])
     |> maybe_low_cardinality(constraints[:low_cardinality?])
-  end
-
-  # O ClickHouse organiza automaticamente os tipos de uma Variant em ordem alfabética
-  # então precisamos ordenar os tipos para garantir que a ordem seja sempre a mesma.
-  # O problema é que a implementação do Ch para o tipo Variant não
-  def fixed_variant(types) do
-    {:variant, Enum.sort_by(types, &IO.iodata_to_binary(Ch.Types.encode(&1)))}
   end
 
   defp get_type({type, constraints}) when is_atom(type) and is_list(constraints) do
