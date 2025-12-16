@@ -148,7 +148,6 @@ defmodule AshClickhouse.DataLayer do
       repo
       |> AshSql.repo_opts(SqlImplementation, nil, options[:tenant], resource)
       |> Keyword.merge(options[:repo_opts] || [])
-      |> dbg()
 
     source = resolve_source(resource, Enum.at(changesets, 0))
 
