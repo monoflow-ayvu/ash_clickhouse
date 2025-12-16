@@ -22,6 +22,10 @@ defmodule AshClickhouse.Type.ChAtom do
   """
   use Ash.Type
 
+  require AshClickhouse.Type.Helper
+
+  AshClickhouse.Type.Helper.graphql_type(__MODULE__, :ch_atom, :string)
+
   @impl true
   def storage_type(constraints) do
     constraints
