@@ -77,6 +77,7 @@ defmodule AshClickhouse.DataLayer do
   def can?(_, :aggregate), do: true
   def can?(_, {:aggregate, _}), do: true
   def can?(_, {:aggregate_type, _}), do: true
+  def can?(_, :multitenancy), do: true
   def can?(_, _), do: false
 
   @impl true
@@ -160,10 +161,27 @@ defmodule AshClickhouse.DataLayer do
         end
 
       ecto_changesets = Enum.map(changesets, & &1.attributes)
+      resource_for_returning = if options[:return_records?], do: resource, else: nil
+      result = insert_all_returning(source, ecto_changesets, repo, resource_for_returning, opts)
 
-      repo.insert_all(source, ecto_changesets, opts)
+      case result do
+        {_, nil} ->
+          :ok
 
-      {:ok, []}
+        {_, results} ->
+          if options[:single?] do
+            {:ok, results}
+          else
+            {:ok,
+             Stream.zip_with(results, changesets, fn result, changeset ->
+               Ash.Resource.put_metadata(
+                 result,
+                 :bulk_create_index,
+                 changeset.context.bulk_create.index
+               )
+             end)}
+          end
+      end
     rescue
       e ->
         changeset =
@@ -185,6 +203,57 @@ defmodule AshClickhouse.DataLayer do
           resource
         )
     end
+  end
+
+  defp insert_all_returning(source, entries, repo, nil, opts) do
+    repo.insert_all(source, entries, opts)
+  end
+
+  defp insert_all_returning(source, entries, repo, resource, opts) do
+    {count, nil} = repo.insert_all(source, entries, opts)
+
+    # Can't work if pkey is composed since Ecto doesn't know to build `where {k1, k2} in ^array` requests
+    pkey = Ash.Resource.Info.primary_key(resource) |> Enum.at(0)
+
+    keys_to_reload =
+      entries
+      |> Enum.map(&Map.get(&1, pkey))
+      |> Enum.filter(&(!is_nil(&1)))
+
+    result =
+      case {count, pkey, keys_to_reload} do
+        {0, _, _} ->
+          nil
+
+        {1, _, _} ->
+          # no pkey, one record, let's hope we have all fields... try our best and pray...
+          # Is there a good way to manage that case ?
+          params =
+            entries
+            |> Enum.at(0)
+            |> Map.to_list()
+
+          Ecto.Query.from(s in source, where: ^params)
+          |> repo.all()
+
+        {_, nil, _} ->
+          # Can't work without a pkey even if we have enough fields to reload
+          # since Ecto doesn't know to build `where {k1, k2} in ^array`
+          # requests
+          nil
+
+        {_, _, _} ->
+          unordered =
+            Ecto.Query.from(s in source, where: field(s, ^pkey) in ^keys_to_reload)
+            |> repo.all()
+
+          indexed = unordered |> Enum.group_by(&Map.get(&1, pkey))
+
+          keys_to_reload
+          |> Enum.map(&(Map.get(indexed, &1) |> Enum.at(0)))
+      end
+
+    {count, result}
   end
 
   @impl true
