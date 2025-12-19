@@ -33,6 +33,9 @@ defmodule AshClickhouse.Repo do
       def migrations_path, do: nil
       def override_migration_type(type), do: type
 
+      def create?, do: true
+      def drop?, do: true
+
       def init(_, config) do
         new_config =
           config
