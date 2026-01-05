@@ -30,8 +30,8 @@ defmodule Mix.Tasks.AshClickhouse.Drop do
 
   ## Examples
 
-      mix ash_postgres.drop
-      mix ash_postgres.drop --domains MyApp.Domain1,MyApp.Domain2
+      mix ash_clickhouse.drop
+      mix ash_clickhouse.drop --domains MyApp.Domain1,MyApp.Domain2
 
   ## Command line options
 

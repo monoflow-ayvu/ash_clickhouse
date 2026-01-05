@@ -27,12 +27,12 @@ defmodule Mix.Tasks.AshClickhouse.Rollback do
   ecto specific task, `mix ecto.migrate` and provide your repo name.
 
   ## Examples
-      mix ash_postgres.rollback
-      mix ash_postgres.rollback -r Custom.Repo
-      mix ash_postgres.rollback -n 3
-      mix ash_postgres.rollback --step 3
-      mix ash_postgres.rollback -v 20080906120000
-      mix ash_postgres.rollback --to 20080906120000
+      mix ash_clickhouse.rollback
+      mix ash_clickhouse.rollback -r Custom.Repo
+      mix ash_clickhouse.rollback -n 3
+      mix ash_clickhouse.rollback --step 3
+      mix ash_clickhouse.rollback -v 20080906120000
+      mix ash_clickhouse.rollback --to 20080906120000
 
   ## Command line options
     * `--domains` - the domains whose repos should be rolled back

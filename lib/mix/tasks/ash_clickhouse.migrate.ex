@@ -59,13 +59,13 @@ defmodule Mix.Tasks.AshClickhouse.Migrate do
 
   ## Examples
 
-      mix ash_postgres.migrate
-      mix ash_postgres.migrate --domains MyApp.Domain1,MyApp.Domain2
+      mix ash_clickhouse.migrate
+      mix ash_clickhouse.migrate --domains MyApp.Domain1,MyApp.Domain2
 
-      mix ash_postgres.migrate -n 3
-      mix ash_postgres.migrate --step 3
+      mix ash_clickhouse.migrate -n 3
+      mix ash_clickhouse.migrate --step 3
 
-      mix ash_postgres.migrate --to 20080906120000
+      mix ash_clickhouse.migrate --to 20080906120000
 
   ## Command line options
 

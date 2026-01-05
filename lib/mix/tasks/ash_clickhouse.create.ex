@@ -27,8 +27,8 @@ defmodule Mix.Tasks.AshClickhouse.Create do
 
   ## Examples
 
-      mix ash_postgres.create
-      mix ash_postgres.create --domains MyApp.Domain1,MyApp.Domain2
+      mix ash_clickhouse.create
+      mix ash_clickhouse.create --domains MyApp.Domain1,MyApp.Domain2
 
   ## Command line options
 
