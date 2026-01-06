@@ -614,6 +614,13 @@ defmodule AshClickhouse.DataLayer do
   end
 
   @impl true
+  def return_query(query, resource) do
+    query
+    |> AshSql.Bindings.default_bindings(resource, SqlImplementation)
+    |> AshSql.Query.return_query(resource)
+  end
+
+  @impl true
   def run_query(query, resource) do
     query = AshSql.Bindings.default_bindings(query, resource, SqlImplementation)
 
