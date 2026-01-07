@@ -270,9 +270,12 @@ defmodule AshClickhouse.Type.ChDecimal do
   end
 
   @impl true
-  def coerce(value, _) do
-    cast_input(value, [])
+  def coerce(value, constraints) when Decimal.is_decimal(value) do
+    cast_input(value, constraints)
   end
+
+  @impl true
+  def coerce(_, _), do: :error
 
   @impl true
   def cast_input(value, _constraints) when is_binary(value) do
