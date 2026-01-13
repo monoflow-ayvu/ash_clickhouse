@@ -1,12 +1,52 @@
 defmodule AshClickhouse.DataLayer do
   @behaviour Ash.DataLayer
 
+  @check_constraint %Spark.Dsl.Entity{
+    name: :check_constraint,
+    describe: """
+    Add a check constraint to be validated.
+
+    If a check constraint exists on the table but not in this section, and it produces an error, a runtime error will be raised.
+
+    Provide a list of attributes instead of a single attribute to add the message to multiple attributes.
+
+    By adding the `check` option, the migration generator will include it when generating migrations.
+    """,
+    examples: [
+      """
+      check_constraint :price, "price_must_be_positive", check: "price > 0", message: "price must be positive"
+      """
+    ],
+    args: [:attribute, :name],
+    target: AshClickhouse.CheckConstraint,
+    schema: AshClickhouse.CheckConstraint.schema()
+  }
+
+  @check_constraints %Spark.Dsl.Section{
+    name: :check_constraints,
+    describe: """
+    A section for configuring the check constraints for a given table.
+
+    This can be used to automatically create those check constraints, or just to provide message when they are raised
+    """,
+    examples: [
+      """
+      check_constraints do
+        check_constraint :price, "price_must_be_positive", check: "price > 0", message: "price must be positive"
+      end
+      """
+    ],
+    entities: [@check_constraint]
+  }
+
   @clickhouse %Spark.Dsl.Section{
     name: :clickhouse,
     describe: """
     Clickhouse data layer configuration
     """,
-    sections: [],
+    sections: [
+      @check_constraints
+    ],
     modules: [
       :repo
     ],
@@ -25,11 +65,27 @@ defmodule AshClickhouse.DataLayer do
         doc:
           "The repo that will be used to fetch your data. See the `AshClickhouse.Repo` documentation for more. Can also be a function that takes a resource and a type `:read | :mutate` and returns the repo"
       ],
+      migrate?: [
+        type: :boolean,
+        default: true,
+        doc:
+          "Whether or not to include this resource in the generated migrations with `mix ash.generate_migrations`"
+      ],
       table: [
         type: :string,
         doc: """
         The table to store and read the resource from. If this is changed, the migration generator will not remove the old table.
         """
+      ],
+      engine: [
+        type: :string,
+        default: "MergeTree()",
+        doc:
+          "The ClickHouse table engine to use. Defaults to `MergeTree()` if not specified. See ClickHouse documentation for more details."
+      ],
+      options: [
+        type: :string,
+        doc: "Options to be passed to the ClickHouse table, e.g. `order_by`"
       ],
       base_filter_sql: [
         type: :string,
@@ -46,11 +102,17 @@ defmodule AshClickhouse.DataLayer do
     verifiers: []
 
   require Ash.Expr
+  require Ash.Query
   require Ecto.Query
 
   alias AshClickhouse.SqlImplementation
   alias AshClickhouse.DataLayer.Info
   alias AshClickhouse.ManualRelationship
+
+  def codegen(args) do
+    Mix.Task.reenable("ash_clickhouse.generate_migrations")
+    Mix.Task.run("ash_clickhouse.generate_migrations", args)
+  end
 
   def rollback(args) do
     {opts, _, _} =
@@ -378,15 +440,11 @@ defmodule AshClickhouse.DataLayer do
           opts
         end
 
-      ecto_changesets = Enum.map(changesets, & &1.attributes)
-      resource_for_returning = if options[:return_records?], do: resource, else: nil
-      result = insert_all_returning(source, ecto_changesets, repo, resource_for_returning, opts)
-
-      case result do
-        {_, nil} ->
+      case insert_all_returning(source, changesets, repo, options[:return_records?], opts) do
+        [] ->
           :ok
 
-        {_, results} ->
+        results ->
           if options[:single?] do
             {:ok, results}
           else
@@ -423,55 +481,25 @@ defmodule AshClickhouse.DataLayer do
     end
   end
 
-  defp insert_all_returning(source, entries, repo, nil, opts) do
+  defp insert_all_returning(source, changesets, repo, false, opts) do
+    entries = Enum.map(changesets, & &1.attributes)
     repo.insert_all(source, entries, opts)
+    []
   end
 
-  defp insert_all_returning(source, entries, repo, resource, opts) do
-    {count, nil} = repo.insert_all(source, entries, opts)
+  defp insert_all_returning(source, changesets, repo, true, opts) do
+    entries = Enum.map(changesets, & &1.attributes)
+    repo.insert_all(source, entries, opts)
 
-    # Can't work if pkey is composed since Ecto doesn't know to build `where {k1, k2} in ^array` requests
-    pkey = Ash.Resource.Info.primary_key(resource) |> Enum.at(0)
+    Enum.reduce_while(changesets, [], fn changeset, acc ->
+      case Ash.Changeset.apply_attributes(changeset) do
+        {:ok, record} ->
+          {:cont, [record | acc]}
 
-    keys_to_reload =
-      entries
-      |> Enum.map(&Map.get(&1, pkey))
-      |> Enum.filter(&(!is_nil(&1)))
-
-    result =
-      case {count, pkey, keys_to_reload} do
-        {0, _, _} ->
-          nil
-
-        {1, _, _} ->
-          # no pkey, one record, let's hope we have all fields... try our best and pray...
-          # Is there a good way to manage that case ?
-          params =
-            entries
-            |> Enum.at(0)
-            |> Map.to_list()
-
-          Ecto.Query.from(s in source, where: ^params)
-          |> repo.all()
-
-        {_, nil, _} ->
-          # Can't work without a pkey even if we have enough fields to reload
-          # since Ecto doesn't know to build `where {k1, k2} in ^array`
-          # requests
-          nil
-
-        {_, _, _} ->
-          unordered =
-            Ecto.Query.from(s in source, where: field(s, ^pkey) in ^keys_to_reload)
-            |> repo.all()
-
-          indexed = unordered |> Enum.group_by(&Map.get(&1, pkey))
-
-          keys_to_reload
-          |> Enum.map(&(Map.get(indexed, &1) |> Enum.at(0)))
+        {:error, errors} ->
+          {:halt, {:error, errors}}
       end
-
-    {count, result}
+    end)
   end
 
   @impl true
