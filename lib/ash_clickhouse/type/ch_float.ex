@@ -19,6 +19,16 @@ for size <- [32, 64] do
       less_than: [
         type: {:custom, __MODULE__, :float, []},
         doc: "Enforces a maximum on the value (exclusive)"
+      ],
+      low_cardinality?: [
+        type: :boolean,
+        doc: "If true, the value is stored as a LowCardinality type",
+        default: false
+      ],
+      nullable?: [
+        type: :boolean,
+        doc: "If true, the value is stored as a Nullable type",
+        default: false
       ]
     ]
 
@@ -125,6 +135,9 @@ for size <- [32, 64] do
                 | errors
               ]
             end
+
+          _, errors ->
+            errors
         end)
 
       case errors do
