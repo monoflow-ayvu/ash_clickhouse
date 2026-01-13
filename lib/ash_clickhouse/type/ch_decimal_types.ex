@@ -1,10 +1,10 @@
-for precision <- [32, 64, 128, 256] do
+for {precision, max_scale} <- [{32, 9}, {64, 18}, {128, 38}, {256, 76}] do
   module_name = Module.concat([AshClickhouse.Type, "ChDecimal#{precision}"])
   function_name = String.to_atom("decimal#{precision}")
 
   defmodule module_name do
     @constraints [
-      precision: [
+      scale: [
         type: :non_neg_integer,
         required: true,
         doc: "Enforces a number of significant digits."
@@ -48,7 +48,11 @@ for precision <- [32, 64, 128, 256] do
     require Decimal
     require AshClickhouse.Type.Helper
 
-    AshClickhouse.Type.Helper.graphql_type(__MODULE__, :"ch_decimal#{unquote(precision)}", :decimal)
+    AshClickhouse.Type.Helper.graphql_type(
+      __MODULE__,
+      :"ch_decimal#{unquote(precision)}",
+      :decimal
+    )
 
     @impl true
     def generator(constraints) do
@@ -83,8 +87,15 @@ for precision <- [32, 64, 128, 256] do
     end
 
     def ch_type(constraints) do
+      if constraints[:scale] > unquote(max_scale) do
+        raise """
+        The scale constraint for #{unquote(module_name)} cannot be greater than #{unquote(max_scale)}.
+        You provided: #{constraints[:scale]}
+        """
+      end
+
       Ch.Types
-      |> apply(unquote(function_name), [constraints[:precision]])
+      |> apply(unquote(function_name), [constraints[:scale]])
       |> maybe_nullable(constraints[:nullable?])
     end
 
@@ -112,7 +123,7 @@ for precision <- [32, 64, 128, 256] do
     @impl true
     def cast_atomic(expr, constraints) do
       cond do
-        constraints[:precision] && constraints[:precision] != :arbitrary ->
+        constraints[:scale] && constraints[:scale] != :arbitrary ->
           {:not_atomic,
            "cannot atomically validate the `precision` of a decimal with an expression"}
 
@@ -128,7 +139,7 @@ for precision <- [32, 64, 128, 256] do
       if Ash.Expr.expr?(expr) do
         expr =
           Enum.reduce(constraints, expr, fn
-            {:precision, :arbitrary}, expr ->
+            {:scale, :arbitrary}, expr ->
               expr
 
             {:max, max}, expr ->
@@ -238,6 +249,16 @@ for precision <- [32, 64, 128, 256] do
                 [message: "must be more than %{greater_than}", greater_than: greater_than]
                 | errors
               ]
+            end
+
+          {:scale, scale}, errors ->
+            if Decimal.scale(value) > scale do
+              [
+                [message: "must have no more than %{scale} decimal places", scale: scale]
+                | errors
+              ]
+            else
+              errors
             end
 
           _, errors ->
