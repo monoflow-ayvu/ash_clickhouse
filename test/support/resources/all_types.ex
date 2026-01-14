@@ -406,5 +406,8 @@ defmodule AshClickhouse.Test.Resource.AllTypes do
     attribute(:array_of_multipolygon_attr, {:array, :ch_multipolygon}) do
       public?(true)
     end
+
+    attribute(:enum8_attr, AshClickhouse.Test.Resource.Types.TestEnum8, public?: true)
+    attribute(:enum16_attr, AshClickhouse.Test.Resource.Types.TestEnum16, public?: true)
   end
 end

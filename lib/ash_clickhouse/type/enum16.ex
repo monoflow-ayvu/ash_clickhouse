@@ -293,6 +293,23 @@ defmodule AshClickhouse.Type.ChEnum16 do
       def match(value) when value in @values, do: {:ok, value}
       def match(value) when value in @string_values, do: {:ok, String.to_existing_atom(value)}
 
+      def match(value) when is_integer(value) do
+        match =
+          Enum.find_value(@opts[:values], fn
+            {valid_value, valid_int} when valid_int == value ->
+              valid_value
+
+            _ ->
+              nil
+          end)
+
+        if match do
+          {:ok, match}
+        else
+          :error
+        end
+      end
+
       def match(value) do
         value =
           value

@@ -162,7 +162,9 @@ defmodule AshClickhouse.TestRepo.Migrations.MigrateResources1 do
       array_of_point_attr Array(Point),
       array_of_ring_attr Array(Ring),
       array_of_polygon_attr Array(Polygon),
-      array_of_multipolygon_attr Array(MultiPolygon)
+      array_of_multipolygon_attr Array(MultiPolygon),
+      enum8_attr Enum8('enum8_min' = -128, 'enum8_zero' = 0, 'enum8_max' = 127),
+      enum16_attr ,
     ) ENGINE = MergeTree()
         ORDER BY id
     """

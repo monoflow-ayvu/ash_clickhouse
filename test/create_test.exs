@@ -320,7 +320,9 @@ defmodule AshClickhouse.CreateTest do
               ]
             ]
           ]
-        ]
+        ],
+        enum8_attr: :enum8_zero,
+        enum16_attr: :enum16_max
       }
 
       assert {:ok,
@@ -584,7 +586,9 @@ defmodule AshClickhouse.CreateTest do
                       ]
                     ]
                   ]
-                ]
+                ],
+                enum8_attr: :enum8_zero,
+                enum16_attr: :enum16_max
               }} =
                AllTypes
                |> Ash.Changeset.for_create(:create, params)
@@ -684,174 +688,176 @@ defmodule AshClickhouse.CreateTest do
                  simple_agg_func_attr: 123,
                  variant_attr: "string ou 42 ou true",
                  array_of_string_attr: ["foo", "bar", "baz"],
-                array_of_low_cardinality_string_attr: ["foo", "bar", "baz"],
-                array_of_nullable_string_attr: ["foo", "bar", "baz"],
-                array_of_low_cardinality_nullable_string_attr: ["foo", "bar", "baz"],
-                array_of_int32_attr: [1, 2, 3],
-                array_of_nullable_int32_attr: [1, 2, 3],
-                array_of_int64_attr: [1, 2, 3],
-                array_of_nullable_int64_attr: [1, 2, 3],
-                array_of_uint32_attr: [1, 2, 3],
-                array_of_nullable_uint32_attr: [1, 2, 3],
-                array_of_uint64_attr: [1, 2, 3],
-                array_of_nullable_uint64_attr: [1, 2, 3],
-                array_of_float32_attr: [1.0, 2.0, 3.0],
-                array_of_nullable_float32_attr: [1.0, 2.0, 3.0],
-                array_of_float64_attr: [1.0, 2.0, 3.0],
-                array_of_nullable_float64_attr: [1.0, 2.0, 3.0],
-                array_of_bool_attr: [true, false, true],
-                array_of_date_attr: [~D[2024-01-01], ~D[2024-01-02], ~D[2024-01-03]],
-                array_of_nullable_date_attr: [~D[2024-01-01], ~D[2024-01-02], ~D[2024-01-03]],
-                array_of_date32_attr: [~D[2024-01-01], ~D[2024-01-02], ~D[2024-01-03]],
-                array_of_nullable_date32_attr: [~D[2024-01-01], ~D[2024-01-02], ~D[2024-01-03]],
-                array_of_datetime_attr: [
-                  ~U[2024-01-01 12:00:00Z],
-                  ~U[2024-01-02 12:00:00Z],
-                  ~U[2024-01-03 12:00:00Z]
-                ],
-                array_of_nullable_datetime_attr: [
-                  ~U[2024-01-01 12:00:00Z],
-                  ~U[2024-01-02 12:00:00Z],
-                  ~U[2024-01-03 12:00:00Z]
-                ],
-                array_of_datetime64_attr: [
-                  ~U[2024-01-01 12:00:00.000000Z],
-                  ~U[2024-01-02 12:00:00.000000Z],
-                  ~U[2024-01-03 12:00:00.000000Z]
-                ],
-                array_of_nullable_datetime64_attr: [
-                  ~U[2024-01-01 12:00:00.000000Z],
-                  ~U[2024-01-02 12:00:00.000000Z],
-                  ~U[2024-01-03 12:00:00.000000Z]
-                ],
-                array_of_decimal32_attr: [
-                  %Decimal{coef: 123_456_789, exp: -9, sign: 1},
-                  %Decimal{coef: 123_456_789, exp: -9, sign: 1},
-                  %Decimal{coef: 123_456_789, exp: -9, sign: 1}
-                ],
-                array_of_nullable_decimal32_attr: [
-                  nil,
-                  %Decimal{coef: 123_456_789, exp: -9, sign: 1},
-                  nil
-                ],
-                array_of_decimal64_attr: [
-                  %Decimal{coef: 123_456_789_123_456_789, exp: -18, sign: 1},
-                  %Decimal{coef: 123_456_789_123_456_789, exp: -18, sign: 1},
-                  %Decimal{coef: 123_456_789_123_456_789, exp: -18, sign: 1}
-                ],
-                array_of_nullable_decimal64_attr: [
-                  nil,
-                  nil,
-                  %Decimal{coef: 123_456_789_123_456_789, exp: -18, sign: 1}
-                ],
-                array_of_decimal128_attr: [
-                  %Decimal{
-                    coef: 12_345_678_912_345_678_912_345_678_912_345_678_912,
-                    exp: -38,
-                    sign: 1
-                  },
-                  %Decimal{
-                    coef: 12_345_678_912_345_678_912_345_678_912_345_678_912,
-                    exp: -38,
-                    sign: 1
-                  },
-                  %Decimal{
-                    coef: 12_345_678_912_345_678_912_345_678_912_345_678_912,
-                    exp: -38,
-                    sign: 1
-                  }
-                ],
-                array_of_nullable_decimal128_attr: [
-                  %Decimal{
-                    coef: 12_345_678_912_345_678_912_345_678_912_345_678_912,
-                    exp: -38,
-                    sign: 1
-                  },
-                  %Decimal{
-                    coef: 12_345_678_912_345_678_912_345_678_912_345_678_912,
-                    exp: -38,
-                    sign: 1
-                  },
-                  nil
-                ],
-                array_of_json_attr: [%{"foo" => "bar"}, %{"baz" => "qux"}],
-                array_of_nullable_json_attr: [%{"foo" => "bar"}, %{"baz" => "qux"}],
-                array_of_map_attr: [
-                  %{"key1" => "value1", "key2" => "value2"},
-                  %{"key3" => "value3", "key4" => "value4"}
-                ],
-                array_of_ipv4_attr: [{192, 168, 1, 1}, {192, 168, 1, 2}, {192, 168, 1, 3}],
-                array_of_nullable_ipv4_attr: [{192, 168, 1, 1}, {192, 168, 1, 2}, nil],
-                array_of_ipv6_attr: [
-                  {8193, 3512, 34211, 0, 0, 35374, 880, 29492},
-                  {8193, 3512, 34211, 0, 0, 35374, 880, 29493},
-                  {8193, 3512, 34211, 0, 0, 35374, 880, 29494}
-                ],
-                array_of_nullable_ipv6_attr: [
-                  nil,
-                  {8193, 3512, 34211, 0, 0, 35374, 880, 29493},
-                  {8193, 3512, 34211, 0, 0, 35374, 880, 29494}
-                ],
-                array_of_uuid_attr: [
-                  "550e8400-e29b-41d4-a716-446655440000",
-                  "550e8400-e29b-41d4-a716-446655440001",
-                  "550e8400-e29b-41d4-a716-446655440002"
-                ],
-                array_of_nullable_uuid_attr: [
-                  "550e8400-e29b-41d4-a716-446655440000",
-                  nil,
-                  "550e8400-e29b-41d4-a716-446655440002"
-                ],
-                array_of_tuple_attr: [{"foo", 42, true}, {"bar", 43, false}, {"baz", 44, true}],
-                array_of_point_attr: [{12.34, 56.78}, {12.34, 56.78}, {12.34, 56.78}],
-                array_of_ring_attr: [
-                  [
-                    {1.0, 2.0},
-                    {3.0, 4.0},
-                    {5.0, 6.0}
-                  ],
-                  [
-                    {1.0, 2.0},
-                    {3.0, 4.0},
-                    {5.0, 6.0}
-                  ]
-                ],
-                array_of_polygon_attr: [
-                  [
-                    [
-                      {1.0, 2.0},
-                      {3.0, 4.0},
-                      {5.0, 6.0}
-                    ]
-                  ],
-                  [
-                    [
-                      {7.0, 8.0},
-                      {9.0, 10.0},
-                      {11.0, 12.0}
-                    ]
-                  ]
-                ],
-                array_of_multipolygon_attr: [
-                  [
-                    [
-                      [
-                        {1.0, 2.0},
-                        {3.0, 4.0},
-                        {5.0, 6.0}
-                      ]
-                    ]
-                  ],
-                  [
-                    [
-                      [
-                        {7.0, 8.0},
-                        {9.0, 10.0},
-                        {11.0, 12.0}
-                      ]
-                    ]
-                  ]
-                ]
+                 array_of_low_cardinality_string_attr: ["foo", "bar", "baz"],
+                 array_of_nullable_string_attr: ["foo", "bar", "baz"],
+                 array_of_low_cardinality_nullable_string_attr: ["foo", "bar", "baz"],
+                 array_of_int32_attr: [1, 2, 3],
+                 array_of_nullable_int32_attr: [1, 2, 3],
+                 array_of_int64_attr: [1, 2, 3],
+                 array_of_nullable_int64_attr: [1, 2, 3],
+                 array_of_uint32_attr: [1, 2, 3],
+                 array_of_nullable_uint32_attr: [1, 2, 3],
+                 array_of_uint64_attr: [1, 2, 3],
+                 array_of_nullable_uint64_attr: [1, 2, 3],
+                 array_of_float32_attr: [1.0, 2.0, 3.0],
+                 array_of_nullable_float32_attr: [1.0, 2.0, 3.0],
+                 array_of_float64_attr: [1.0, 2.0, 3.0],
+                 array_of_nullable_float64_attr: [1.0, 2.0, 3.0],
+                 array_of_bool_attr: [true, false, true],
+                 array_of_date_attr: [~D[2024-01-01], ~D[2024-01-02], ~D[2024-01-03]],
+                 array_of_nullable_date_attr: [~D[2024-01-01], ~D[2024-01-02], ~D[2024-01-03]],
+                 array_of_date32_attr: [~D[2024-01-01], ~D[2024-01-02], ~D[2024-01-03]],
+                 array_of_nullable_date32_attr: [~D[2024-01-01], ~D[2024-01-02], ~D[2024-01-03]],
+                 array_of_datetime_attr: [
+                   ~U[2024-01-01 12:00:00Z],
+                   ~U[2024-01-02 12:00:00Z],
+                   ~U[2024-01-03 12:00:00Z]
+                 ],
+                 array_of_nullable_datetime_attr: [
+                   ~U[2024-01-01 12:00:00Z],
+                   ~U[2024-01-02 12:00:00Z],
+                   ~U[2024-01-03 12:00:00Z]
+                 ],
+                 array_of_datetime64_attr: [
+                   ~U[2024-01-01 12:00:00.000000Z],
+                   ~U[2024-01-02 12:00:00.000000Z],
+                   ~U[2024-01-03 12:00:00.000000Z]
+                 ],
+                 array_of_nullable_datetime64_attr: [
+                   ~U[2024-01-01 12:00:00.000000Z],
+                   ~U[2024-01-02 12:00:00.000000Z],
+                   ~U[2024-01-03 12:00:00.000000Z]
+                 ],
+                 array_of_decimal32_attr: [
+                   %Decimal{coef: 123_456_789, exp: -9, sign: 1},
+                   %Decimal{coef: 123_456_789, exp: -9, sign: 1},
+                   %Decimal{coef: 123_456_789, exp: -9, sign: 1}
+                 ],
+                 array_of_nullable_decimal32_attr: [
+                   nil,
+                   %Decimal{coef: 123_456_789, exp: -9, sign: 1},
+                   nil
+                 ],
+                 array_of_decimal64_attr: [
+                   %Decimal{coef: 123_456_789_123_456_789, exp: -18, sign: 1},
+                   %Decimal{coef: 123_456_789_123_456_789, exp: -18, sign: 1},
+                   %Decimal{coef: 123_456_789_123_456_789, exp: -18, sign: 1}
+                 ],
+                 array_of_nullable_decimal64_attr: [
+                   nil,
+                   nil,
+                   %Decimal{coef: 123_456_789_123_456_789, exp: -18, sign: 1}
+                 ],
+                 array_of_decimal128_attr: [
+                   %Decimal{
+                     coef: 12_345_678_912_345_678_912_345_678_912_345_678_912,
+                     exp: -38,
+                     sign: 1
+                   },
+                   %Decimal{
+                     coef: 12_345_678_912_345_678_912_345_678_912_345_678_912,
+                     exp: -38,
+                     sign: 1
+                   },
+                   %Decimal{
+                     coef: 12_345_678_912_345_678_912_345_678_912_345_678_912,
+                     exp: -38,
+                     sign: 1
+                   }
+                 ],
+                 array_of_nullable_decimal128_attr: [
+                   %Decimal{
+                     coef: 12_345_678_912_345_678_912_345_678_912_345_678_912,
+                     exp: -38,
+                     sign: 1
+                   },
+                   %Decimal{
+                     coef: 12_345_678_912_345_678_912_345_678_912_345_678_912,
+                     exp: -38,
+                     sign: 1
+                   },
+                   nil
+                 ],
+                 array_of_json_attr: [%{"foo" => "bar"}, %{"baz" => "qux"}],
+                 array_of_nullable_json_attr: [%{"foo" => "bar"}, %{"baz" => "qux"}],
+                 array_of_map_attr: [
+                   %{"key1" => "value1", "key2" => "value2"},
+                   %{"key3" => "value3", "key4" => "value4"}
+                 ],
+                 array_of_ipv4_attr: [{192, 168, 1, 1}, {192, 168, 1, 2}, {192, 168, 1, 3}],
+                 array_of_nullable_ipv4_attr: [{192, 168, 1, 1}, {192, 168, 1, 2}, nil],
+                 array_of_ipv6_attr: [
+                   {8193, 3512, 34211, 0, 0, 35374, 880, 29492},
+                   {8193, 3512, 34211, 0, 0, 35374, 880, 29493},
+                   {8193, 3512, 34211, 0, 0, 35374, 880, 29494}
+                 ],
+                 array_of_nullable_ipv6_attr: [
+                   nil,
+                   {8193, 3512, 34211, 0, 0, 35374, 880, 29493},
+                   {8193, 3512, 34211, 0, 0, 35374, 880, 29494}
+                 ],
+                 array_of_uuid_attr: [
+                   "550e8400-e29b-41d4-a716-446655440000",
+                   "550e8400-e29b-41d4-a716-446655440001",
+                   "550e8400-e29b-41d4-a716-446655440002"
+                 ],
+                 array_of_nullable_uuid_attr: [
+                   "550e8400-e29b-41d4-a716-446655440000",
+                   nil,
+                   "550e8400-e29b-41d4-a716-446655440002"
+                 ],
+                 array_of_tuple_attr: [{"foo", 42, true}, {"bar", 43, false}, {"baz", 44, true}],
+                 array_of_point_attr: [{12.34, 56.78}, {12.34, 56.78}, {12.34, 56.78}],
+                 array_of_ring_attr: [
+                   [
+                     {1.0, 2.0},
+                     {3.0, 4.0},
+                     {5.0, 6.0}
+                   ],
+                   [
+                     {1.0, 2.0},
+                     {3.0, 4.0},
+                     {5.0, 6.0}
+                   ]
+                 ],
+                 array_of_polygon_attr: [
+                   [
+                     [
+                       {1.0, 2.0},
+                       {3.0, 4.0},
+                       {5.0, 6.0}
+                     ]
+                   ],
+                   [
+                     [
+                       {7.0, 8.0},
+                       {9.0, 10.0},
+                       {11.0, 12.0}
+                     ]
+                   ]
+                 ],
+                 array_of_multipolygon_attr: [
+                   [
+                     [
+                       [
+                         {1.0, 2.0},
+                         {3.0, 4.0},
+                         {5.0, 6.0}
+                       ]
+                     ]
+                   ],
+                   [
+                     [
+                       [
+                         {7.0, 8.0},
+                         {9.0, 10.0},
+                         {11.0, 12.0}
+                       ]
+                     ]
+                   ]
+                 ],
+                 enum8_attr: :enum8_zero,
+                 enum16_attr: :enum16_max
                }
              ] =
                AllTypes
