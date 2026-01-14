@@ -14,6 +14,14 @@ defmodule AshClickhouse.DataLayer.Info do
     end
   end
 
+  def engine(resource) do
+    Extension.get_opt(resource, [:clickhouse], :engine, nil, true)
+  end
+
+  def options(resource) do
+    Extension.get_opt(resource, [:clickhouse], :options, [], true)
+  end
+
   @doc "A keyword list of calculations to their sql representation"
   def calculations_to_sql(resource) do
     Extension.get_opt(resource, [:clickhouse], :calculations_to_sql, [])

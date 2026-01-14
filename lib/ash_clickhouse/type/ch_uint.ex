@@ -11,6 +11,16 @@ for size <- [8, 16, 32, 64, 128, 256] do
       min: [
         type: {:custom, __MODULE__, :integer, []},
         doc: "Enforces a minimum on the value"
+      ],
+      low_cardinality?: [
+        type: :boolean,
+        doc: "If true, the value is stored as a LowCardinality type",
+        default: false
+      ],
+      nullable?: [
+        type: :boolean,
+        doc: "If true, the value is stored as a Nullable type",
+        default: false
       ]
     ]
     @moduledoc """
@@ -151,6 +161,9 @@ for size <- [8, 16, 32, 64, 128, 256] do
             else
               errors
             end
+
+          _, errors ->
+            errors
         end)
 
       case errors do

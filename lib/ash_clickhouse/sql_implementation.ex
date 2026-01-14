@@ -54,10 +54,6 @@ defmodule AshClickhouse.SqlImplementation do
   @impl true
   def manual_relationship_subquery_function(), do: :ash_clickhouse_subquery
 
-  def parameterized_type(AshClickhouse.Type.Ch = type, constraints) do
-    type.storage_type(constraints)
-  end
-
   @impl true
   def parameterized_type(type, _constraints), do: type
 

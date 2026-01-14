@@ -41,8 +41,6 @@ defmodule Mix.Tasks.AshClickhouse.Drop do
     * `-f`, `--force` - do not ask for confirmation when dropping the database.
       Configuration is asked only when `:start_permanent` is set to true
       (typically in production)
-    * `--force-drop` - force the database to be dropped even
-      if it has connections to it (requires PostgreSQL 13+)
     * `--no-compile` - do not compile before dropping
     * `--no-deps-check` - do not check dependencies before dropping
   """

@@ -7,16 +7,23 @@ defmodule AshClickhouse.MixProject do
       version: "0.1.0",
       elixir: "~> 1.18",
       start_permanent: Mix.env() == :prod,
-      deps: deps()
+      deps: deps(),
+      elixirc_paths: elixirc_paths(Mix.env()),
+      aliases: aliases(),
+      test_coverage: [tool: ExCoveralls]
     ]
   end
 
-  # Run "mix help compile.app" to learn about applications.
-  def application do
-    [
-      extra_applications: [:logger]
-    ]
+  if Mix.env() == :test do
+    def application() do
+      [
+        mod: {AshClickhouse.TestApp, []}
+      ]
+    end
   end
+
+  defp elixirc_paths(:test), do: ["lib", "test/support"]
+  defp elixirc_paths(_), do: ["lib"]
 
   # Run "mix help deps" to learn about dependencies.
   defp deps do
@@ -27,6 +34,7 @@ defmodule AshClickhouse.MixProject do
       {:jason, "~> 1.0"},
       {:ash, ash_version("~> 3.5")},
       {:ash_sql, ash_sql_version("~> 0.2")},
+      {:excoveralls, "~> 0.18", only: :test}
       # {:git_ops, "~> 2.5", only: [:dev, :test]},
       # {:ex_doc, "~> 0.37-rc", only: [:dev, :test], runtime: false},
       # {:ex_check, "~> 0.14", only: [:dev, :test]},
@@ -73,5 +81,12 @@ defmodule AshClickhouse.MixProject do
       version ->
         version
     end
+  end
+
+  defp aliases do
+    [
+      test: ["ecto.create --quiet", "ecto.migrate", "test"],
+      "ecto.reset": ["ecto.drop", "ecto.create --quiet", "ecto.migrate"]
+    ]
   end
 end
