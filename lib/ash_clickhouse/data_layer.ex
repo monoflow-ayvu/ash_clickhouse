@@ -109,10 +109,10 @@ defmodule AshClickhouse.DataLayer do
   alias AshClickhouse.DataLayer.Info
   alias AshClickhouse.ManualRelationship
 
-  def codegen(args) do
-    Mix.Task.reenable("ash_clickhouse.generate_migrations")
-    Mix.Task.run("ash_clickhouse.generate_migrations", args)
-  end
+  # def codegen(args) do
+  #   Mix.Task.reenable("ash_clickhouse.generate_migrations")
+  #   Mix.Task.run("ash_clickhouse.generate_migrations", args)
+  # end
 
   def rollback(args) do
     {opts, _, _} =
