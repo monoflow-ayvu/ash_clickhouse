@@ -40,10 +40,22 @@ defmodule AshClickhouse.Type.ChJSON do
 
   @impl true
   def cast_input(nil, _constraints), do: {:ok, nil}
-  def cast_input(value, constraints), do: Ch.cast(value, ch_type(constraints))
+
+  def cast_input(value, constraints) do
+    case Jason.encode(value) do
+      {:ok, json} ->
+        json
+        |> Jason.decode!()
+        |> Ch.cast(ch_type(constraints))
+
+      {:error, reason} ->
+        {:error, "Failed to encode JSON: #{inspect(reason)}"}
+    end
+  end
 
   @impl true
   def cast_stored(nil, _constraints), do: {:ok, nil}
+
   def cast_stored(value, constraints), do: Ch.load(value, nil, ch_type(constraints))
 
   @impl true

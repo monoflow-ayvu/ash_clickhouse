@@ -124,8 +124,7 @@ for {precision, max_scale} <- [{32, 9}, {64, 18}, {128, 38}, {256, 76}] do
     def cast_atomic(expr, constraints) do
       cond do
         constraints[:scale] && constraints[:scale] != :arbitrary ->
-          {:not_atomic,
-           "cannot atomically validate the `precision` of a decimal with an expression"}
+          {:not_atomic, "cannot atomically validate the `scale` of a decimal with an expression"}
 
         constraints[:scale] && constraints[:scale] != :arbitrary ->
           {:not_atomic, "cannot atomically validate the `scale` of a decimal with an expression"}
@@ -207,19 +206,6 @@ for {precision, max_scale} <- [{32, 9}, {64, 18}, {128, 38}, {256, 76}] do
     def apply_constraints(value, constraints) do
       errors =
         Enum.reduce(constraints, [], fn
-          {:precision, precision}, errors ->
-            if value.exp * -1 > precision do
-              [
-                [
-                  message: "must have no more than %{precision} significant digits",
-                  precision: precision
-                ]
-                | errors
-              ]
-            else
-              errors
-            end
-
           {:max, max}, errors ->
             if Decimal.compare(value, max) == :gt do
               [[message: "must be less than or equal to %{max}", max: max] | errors]
@@ -277,6 +263,8 @@ for {precision, max_scale} <- [{32, 9}, {64, 18}, {128, 38}, {256, 76}] do
     end
 
     @impl true
+    def cast_input(nil, _constraints), do: {:ok, nil}
+
     def cast_input(value, _constraints) when is_binary(value) do
       case Decimal.parse(value) do
         {decimal, ""} ->

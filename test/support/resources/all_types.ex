@@ -184,5 +184,227 @@ defmodule AshClickhouse.Test.Resource.AllTypes do
       public?(true)
       constraints(types: [:ch_string, :ch_int32, :ch_bool])
     end
+
+    attribute(:array_of_string_attr, {:array, :ch_string}) do
+      public?(true)
+    end
+
+    attribute(:array_of_low_cardinality_string_attr, {:array, :ch_string}) do
+      public?(true)
+      constraints(items: [low_cardinality?: true])
+    end
+
+    attribute(:array_of_nullable_string_attr, {:array, :ch_string}) do
+      public?(true)
+      constraints(items: [nullable?: true])
+    end
+
+    attribute(:array_of_low_cardinality_nullable_string_attr, {:array, :ch_string}) do
+      public?(true)
+      constraints(items: [nullable?: true, low_cardinality?: true])
+    end
+
+    attribute(:array_of_int32_attr, {:array, :ch_int32}) do
+      public?(true)
+    end
+
+    attribute(:array_of_nullable_int32_attr, {:array, :ch_int32}) do
+      public?(true)
+      constraints(items: [nullable?: true])
+    end
+
+    attribute(:array_of_int64_attr, {:array, :ch_int64}) do
+      public?(true)
+    end
+
+    attribute(:array_of_nullable_int64_attr, {:array, :ch_int64}) do
+      public?(true)
+      constraints(items: [nullable?: true])
+    end
+
+    attribute(:array_of_uint32_attr, {:array, :ch_uint32}) do
+      public?(true)
+    end
+
+    attribute(:array_of_nullable_uint32_attr, {:array, :ch_uint32}) do
+      public?(true)
+      constraints(items: [nullable?: true])
+    end
+
+    attribute(:array_of_uint64_attr, {:array, :ch_uint64}) do
+      public?(true)
+    end
+
+    attribute(:array_of_nullable_uint64_attr, {:array, :ch_uint64}) do
+      public?(true)
+      constraints(items: [nullable?: true])
+    end
+
+    attribute(:array_of_float32_attr, {:array, :ch_float32}) do
+      public?(true)
+    end
+
+    attribute(:array_of_nullable_float32_attr, {:array, :ch_float32}) do
+      public?(true)
+      constraints(items: [nullable?: true])
+    end
+
+    attribute(:array_of_float64_attr, {:array, :ch_float64}) do
+      public?(true)
+    end
+
+    attribute(:array_of_nullable_float64_attr, {:array, :ch_float64}) do
+      public?(true)
+      constraints(items: [nullable?: true])
+    end
+
+    attribute(:array_of_bool_attr, {:array, :ch_bool}) do
+      public?(true)
+    end
+
+    attribute(:array_of_date_attr, {:array, :ch_date}) do
+      public?(true)
+    end
+
+    attribute(:array_of_nullable_date_attr, {:array, :ch_date}) do
+      public?(true)
+      constraints(items: [nullable?: true])
+    end
+
+    attribute(:array_of_date32_attr, {:array, :ch_date32}) do
+      public?(true)
+    end
+
+    attribute(:array_of_nullable_date32_attr, {:array, :ch_date32}) do
+      public?(true)
+      constraints(items: [nullable?: true])
+    end
+
+    attribute(:array_of_datetime_attr, {:array, :ch_datetime}) do
+      public?(true)
+      constraints(items: [timezone: "UTC"])
+    end
+
+    attribute(:array_of_nullable_datetime_attr, {:array, :ch_datetime}) do
+      public?(true)
+      constraints(items: [nullable?: true, timezone: "UTC"])
+    end
+
+    attribute(:array_of_datetime64_attr, {:array, :ch_datetime64}) do
+      public?(true)
+      constraints(items: [precision: 6, timezone: "UTC"])
+    end
+
+    attribute(:array_of_nullable_datetime64_attr, {:array, :ch_datetime64}) do
+      public?(true)
+      constraints(items: [nullable?: true, precision: 6, timezone: "UTC"])
+    end
+
+    attribute(:array_of_decimal32_attr, {:array, :ch_decimal32}) do
+      public?(true)
+      constraints(items: [scale: 9])
+    end
+
+    attribute(:array_of_nullable_decimal32_attr, {:array, :ch_decimal32}) do
+      public?(true)
+      constraints(items: [nullable?: true, scale: 9], nil_items?: true)
+    end
+
+    attribute(:array_of_decimal64_attr, {:array, :ch_decimal64}) do
+      public?(true)
+      constraints(items: [scale: 18])
+    end
+
+    attribute(:array_of_nullable_decimal64_attr, {:array, :ch_decimal64}) do
+      public?(true)
+      constraints(items: [nullable?: true, scale: 18], nil_items?: true)
+    end
+
+    attribute(:array_of_decimal128_attr, {:array, :ch_decimal128}) do
+      public?(true)
+      constraints(items: [scale: 38])
+    end
+
+    attribute(:array_of_nullable_decimal128_attr, {:array, :ch_decimal128}) do
+      public?(true)
+      constraints(items: [nullable?: true, scale: 38], nil_items?: true)
+    end
+
+    attribute(:array_of_decimal256_attr, {:array, :ch_decimal256}) do
+      public?(true)
+      constraints(items: [scale: 76])
+    end
+
+    attribute(:array_of_nullable_decimal256_attr, {:array, :ch_decimal256}) do
+      public?(true)
+      constraints(items: [nullable?: true, scale: 76], nil_items?: true)
+    end
+
+    attribute(:array_of_json_attr, {:array, :ch_json}) do
+      public?(true)
+    end
+
+    attribute(:array_of_nullable_json_attr, {:array, :ch_json}) do
+      public?(true)
+      constraints(items: [nullable?: true], nil_items?: true)
+    end
+
+    attribute(:array_of_map_attr, {:array, :ch_map}) do
+      public?(true)
+      constraints(items: [key_type: :ch_string, value_type: :ch_string])
+    end
+
+    attribute(:array_of_ipv4_attr, {:array, :ch_ipv4}) do
+      public?(true)
+    end
+
+    attribute(:array_of_nullable_ipv4_attr, {:array, :ch_ipv4}) do
+      public?(true)
+      constraints(items: [nullable?: true], nil_items?: true)
+    end
+
+    attribute(:array_of_ipv6_attr, {:array, :ch_ipv6}) do
+      public?(true)
+    end
+
+    attribute(:array_of_nullable_ipv6_attr, {:array, :ch_ipv6}) do
+      public?(true)
+      constraints(items: [nullable?: true], nil_items?: true)
+    end
+
+    attribute(:array_of_uuid_attr, {:array, :ch_uuid}) do
+      public?(true)
+    end
+
+    attribute(:array_of_nullable_uuid_attr, {:array, :ch_uuid}) do
+      public?(true)
+      constraints(items: [nullable?: true], nil_items?: true)
+    end
+
+    attribute(:array_of_variant_attr, {:array, :ch_variant}) do
+      public?(true)
+      constraints(items: [types: [:ch_string, :ch_int32, :ch_bool]])
+    end
+
+    attribute(:array_of_tuple_attr, {:array, :ch_tuple}) do
+      public?(true)
+      constraints(items: [types: [:ch_string, :ch_int32, :ch_bool]])
+    end
+
+    attribute(:array_of_point_attr, {:array, :ch_point}) do
+      public?(true)
+    end
+
+    attribute(:array_of_ring_attr, {:array, :ch_ring}) do
+      public?(true)
+    end
+
+    attribute(:array_of_polygon_attr, {:array, :ch_polygon}) do
+      public?(true)
+    end
+
+    attribute(:array_of_multipolygon_attr, {:array, :ch_multipolygon}) do
+      public?(true)
+    end
   end
 end
