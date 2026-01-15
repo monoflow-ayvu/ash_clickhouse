@@ -72,6 +72,241 @@ defmodule AshClickhouse.CreateTest do
                |> Ash.Query.filter(user_id == ^user.id and organization_id == ^org.id)
                |> Ash.read!()
     end
+
+    test "bulk create users" do
+      params_list =
+        [
+          %{
+            name: "User1",
+            email: "user1@example.com",
+            age: 20,
+            score: 10.5,
+            is_active: true
+          },
+          %{
+            name: "User2",
+            email: "user2@example.com",
+            age: 25,
+            score: 20.0,
+            is_active: false
+          },
+          %{
+            name: "User3",
+            email: "user3@example.com",
+            age: 30,
+            score: 30.1,
+            is_active: true
+          }
+        ]
+
+      assert %Ash.BulkResult{
+               status: :success,
+               errors: nil,
+               records: nil,
+               notifications: nil,
+               error_count: 0
+             } = Ash.bulk_create(params_list, User, :create)
+
+      assert [
+               %User{
+                 name: "User1",
+                 email: "user1@example.com",
+                 age: 20,
+                 score: 10.5,
+                 is_active: true,
+                 inserted_at: %DateTime{},
+                 updated_at: %DateTime{}
+               },
+               %User{
+                 name: "User2",
+                 email: "user2@example.com",
+                 age: 25,
+                 score: 20.0,
+                 is_active: false,
+                 inserted_at: %DateTime{},
+                 updated_at: %DateTime{}
+               },
+               %User{
+                 name: "User3",
+                 email: "user3@example.com",
+                 age: 30,
+                 score: 30.1,
+                 is_active: true,
+                 inserted_at: %DateTime{},
+                 updated_at: %DateTime{}
+               }
+             ] =
+               User
+               |> Ash.Query.sort(:name)
+               |> Ash.read!()
+    end
+
+    test "fails to create user with invalid parameters" do
+      # Missing required :name and :email fields, and invalid :age type
+      params = %{
+        age: 20.5
+      }
+
+      assert {:error,
+              %Ash.Error.Invalid{
+                bread_crumbs: ["Error returned from: AshClickhouse.Test.Resource.User.create"],
+                errors: [
+                  %Ash.Error.Changes.InvalidAttribute{
+                    field: :age,
+                    message: "is invalid",
+                    private_vars: nil,
+                    value: 20.5,
+                    has_value?: true,
+                    splode: Ash.Error,
+                    bread_crumbs: [
+                      "Error returned from: AshClickhouse.Test.Resource.User.create"
+                    ],
+                    vars: [],
+                    path: [],
+                    class: :invalid
+                  }
+                ]
+              }} =
+               User
+               |> Ash.Changeset.for_create(:create, params)
+               |> Ash.create()
+    end
+  end
+
+  describe "Organization resource create tests" do
+    test "creates insert" do
+      params = %{
+        name: "Tech Corp",
+        industry: "Technology",
+        employee_count: 500,
+        founded_year: 2010
+      }
+
+      assert {:ok, %Organization{name: "Tech Corp"}} =
+               Organization
+               |> Ash.Changeset.for_create(:create, params)
+               |> Ash.create()
+
+      assert [%{name: "Tech Corp"}] =
+               Organization
+               |> Ash.Query.sort(:name)
+               |> Ash.read!()
+    end
+
+    test "creates organization with users using manage_relationship" do
+      user_params = %{
+        name: "Bob",
+        email: "bob@example.com",
+        age: 35,
+        score: 88.5,
+        is_active: true
+      }
+
+      {:ok, user} =
+        User
+        |> Ash.Changeset.for_create(:create, user_params)
+        |> Ash.create()
+
+      org_params = %{
+        name: "Org with Bob",
+        industry: "Finance",
+        employee_count: 50,
+        founded_year: 2015
+      }
+
+      changeset =
+        Organization
+        |> Ash.Changeset.for_create(:create, org_params)
+        |> Ash.Changeset.manage_relationship(:users, [user], type: :append_and_remove)
+
+      assert {:ok, %Organization{} = org} = Ash.create(changeset)
+      assert [%{name: "Bob"}] = org.users
+
+      org_id = org.id
+      user_id = user.id
+
+      assert [%{user_id: ^user_id, organization_id: ^org_id, role: :member}] =
+               OrganizationUser
+               |> Ash.Query.filter(user_id == ^user.id and organization_id == ^org.id)
+               |> Ash.read!()
+    end
+
+    test "organization can be created without users" do
+      params = %{
+        name: "Solo Org",
+        industry: "Education",
+        employee_count: 10,
+        founded_year: 2022
+      }
+
+      assert {:ok, %Organization{name: "Solo Org", users: []}} =
+               Organization
+               |> Ash.Changeset.for_create(:create, params)
+               |> Ash.Changeset.load(:users)
+               |> Ash.create()
+
+      assert [%Organization{name: "Solo Org", users: []}] =
+               Organization
+               |> Ash.Query.filter(name == "Solo Org")
+               |> Ash.Query.load(:users)
+               |> Ash.read!()
+    end
+
+    test "organization can have multiple users" do
+      user1_params = %{
+        name: "Carol",
+        email: "carol@example.com",
+        age: 29,
+        score: 77.7,
+        is_active: true
+      }
+
+      user2_params = %{
+        name: "Dave",
+        email: "dave@example.com",
+        age: 40,
+        score: 66.6,
+        is_active: false
+      }
+
+      {:ok, user1} =
+        User
+        |> Ash.Changeset.for_create(:create, user1_params)
+        |> Ash.create()
+
+      {:ok, user2} =
+        User
+        |> Ash.Changeset.for_create(:create, user2_params)
+        |> Ash.create()
+
+      org_params = %{
+        name: "Org with Many",
+        industry: "Retail",
+        employee_count: 200,
+        founded_year: 2000
+      }
+
+      changeset =
+        Organization
+        |> Ash.Changeset.for_create(:create, org_params)
+        |> Ash.Changeset.manage_relationship(:users, [user1, user2], type: :append_and_remove)
+
+      assert {:ok, %Organization{} = org} = Ash.create(changeset)
+      assert Enum.sort(Enum.map(org.users, & &1.name)) == ["Carol", "Dave"]
+
+      org_id = org.id
+      user1_id = user1.id
+      user2_id = user2.id
+
+      assert [
+               %{user_id: ^user1_id, organization_id: ^org_id, role: :member},
+               %{user_id: ^user2_id, organization_id: ^org_id, role: :member}
+             ] =
+               OrganizationUser
+               |> Ash.Query.filter(organization_id == ^org.id)
+               |> Ash.Query.sort(:inserted_at)
+               |> Ash.read!()
+    end
   end
 
   describe "AllTypes resource create tests" do
