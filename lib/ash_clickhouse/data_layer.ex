@@ -1,52 +1,12 @@
 defmodule AshClickhouse.DataLayer do
   @behaviour Ash.DataLayer
 
-  @check_constraint %Spark.Dsl.Entity{
-    name: :check_constraint,
-    describe: """
-    Add a check constraint to be validated.
-
-    If a check constraint exists on the table but not in this section, and it produces an error, a runtime error will be raised.
-
-    Provide a list of attributes instead of a single attribute to add the message to multiple attributes.
-
-    By adding the `check` option, the migration generator will include it when generating migrations.
-    """,
-    examples: [
-      """
-      check_constraint :price, "price_must_be_positive", check: "price > 0", message: "price must be positive"
-      """
-    ],
-    args: [:attribute, :name],
-    target: AshClickhouse.CheckConstraint,
-    schema: AshClickhouse.CheckConstraint.schema()
-  }
-
-  @check_constraints %Spark.Dsl.Section{
-    name: :check_constraints,
-    describe: """
-    A section for configuring the check constraints for a given table.
-
-    This can be used to automatically create those check constraints, or just to provide message when they are raised
-    """,
-    examples: [
-      """
-      check_constraints do
-        check_constraint :price, "price_must_be_positive", check: "price > 0", message: "price must be positive"
-      end
-      """
-    ],
-    entities: [@check_constraint]
-  }
-
   @clickhouse %Spark.Dsl.Section{
     name: :clickhouse,
     describe: """
     Clickhouse data layer configuration
     """,
-    sections: [
-      @check_constraints
-    ],
+    sections: [],
     modules: [
       :repo
     ],

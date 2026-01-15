@@ -17,6 +17,11 @@ defmodule AshClickhouse.Type.ChDateTime64 do
       type: :boolean,
       default: false,
       doc: "If true, the value is stored as a Nullable(DateTime64(precision, timezone))"
+    ],
+    low_cardinality?: [
+      type: :boolean,
+      default: false,
+      doc: "If true, the value is stored as a LowCardinality(DateTime64(precision, timezone))"
     ]
   ]
 
@@ -59,6 +64,14 @@ defmodule AshClickhouse.Type.ChDateTime64 do
 
   @impl true
   def matches_type?(%DateTime{}, _), do: true
+
+  def matches_type?(value, constraints) when is_binary(value) do
+    case Ch.cast(value, ch_type(constraints)) do
+      {:ok, _} -> true
+      :error -> false
+    end
+  end
+
   def matches_type?(_, _), do: false
 
   @impl true

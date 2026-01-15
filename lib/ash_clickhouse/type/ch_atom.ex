@@ -35,8 +35,8 @@ defmodule AshClickhouse.Type.ChAtom do
 
   def ch_type(constraints) do
     Ch.Types.string()
-    |> Ch.Types.low_cardinality()
     |> maybe_nullable(constraints[:nullable?])
+    |> Ch.Types.low_cardinality()
   end
 
   defp maybe_nullable(type, true), do: Ch.Types.nullable(type)
@@ -104,10 +104,6 @@ defmodule AshClickhouse.Type.ChAtom do
 
   @impl true
   def cast_stored(nil, _), do: {:ok, nil}
-
-  def cast_stored(value, _) when is_atom(value) do
-    {:ok, value}
-  end
 
   def cast_stored(value, constraints) when is_binary(value), do: cast_value(value, constraints)
 

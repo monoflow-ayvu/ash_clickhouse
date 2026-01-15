@@ -5,10 +5,6 @@ defmodule AshClickhouse.Type.ChFixedString do
       required: true,
       doc: "The length of the fixed string: FixedString(length)"
     ],
-    min_length: [
-      type: :non_neg_integer,
-      doc: "Enforces a minimum length on the value"
-    ],
     match: [
       type: :regex_as_mfa,
       doc: "Enforces that the string matches a passed in regex"
@@ -122,65 +118,7 @@ defmodule AshClickhouse.Type.ChFixedString do
 
   @impl true
   def apply_atomic_constraints(expr, constraints) do
-    if Ash.Expr.expr?(expr) do
-      validated =
-        case {constraints[:max_length], constraints[:min_length]} do
-          {nil, nil} ->
-            expr
-
-          {max, nil} ->
-            Ash.Expr.expr(
-              if string_length(^expr) > ^max do
-                error(
-                  Ash.Error.Changes.InvalidChanges,
-                  message: "length must be less than or equal to %{max}",
-                  vars: %{max: max}
-                )
-              else
-                ^expr
-              end
-            )
-
-          {nil, min} ->
-            Ash.Expr.expr(
-              if string_length(^expr) < ^min do
-                error(
-                  Ash.Error.Changes.InvalidChanges,
-                  message: "length must be greater than or equal to %{min}",
-                  vars: %{min: min}
-                )
-              else
-                ^expr
-              end
-            )
-
-          {max, min} ->
-            Ash.Expr.expr(
-              cond do
-                string_length(^expr) < ^min ->
-                  error(
-                    Ash.Error.Changes.InvalidChanges,
-                    message: "length must be greater than or equal to %{min}",
-                    vars: %{min: min}
-                  )
-
-                string_length(^expr) > ^max ->
-                  error(
-                    Ash.Error.Changes.InvalidChanges,
-                    message: "length must be less than or equal to %{max}",
-                    vars: %{max: max}
-                  )
-
-                true ->
-                  ^expr
-              end
-            )
-        end
-
-      {:ok, validated}
-    else
-      apply_constraints(expr, constraints)
-    end
+    apply_constraints(expr, constraints)
   end
 
   @impl true
@@ -191,18 +129,18 @@ defmodule AshClickhouse.Type.ChFixedString do
     base_generator =
       StreamData.string(
         :printable,
-        Keyword.take(constraints, [:max_length, :min_length])
+        Keyword.take(constraints, [:length])
       )
 
     cond do
-      constraints[:trim?] && constraints[:min_length] ->
+      constraints[:trim?] && constraints[:length] ->
         StreamData.filter(base_generator, fn value ->
-          value |> String.trim() |> String.length() |> Kernel.>=(constraints[:min_length])
+          value |> String.trim() |> String.length() |> Kernel.==(constraints[:length])
         end)
 
-      constraints[:min_length] ->
+      constraints[:length] ->
         StreamData.filter(base_generator, fn value ->
-          value |> String.length() |> Kernel.>=(constraints[:min_length])
+          value |> String.length() |> Kernel.==(constraints[:length])
         end)
 
       true ->
@@ -257,17 +195,10 @@ defmodule AshClickhouse.Type.ChFixedString do
 
   defp validate(value, constraints) do
     Enum.reduce(constraints, [], fn
-      {:max_length, max_length}, errors ->
-        if String.length(value) > max_length do
-          [[message: "length must be less than or equal to %{max}", max: max_length] | errors]
-        else
-          errors
-        end
-
-      {:min_length, min_length}, errors ->
-        if String.length(value) < min_length do
+      {:length, length}, errors ->
+        if String.length(value) != length do
           [
-            [message: "length must be greater than or equal to %{min}", min: min_length]
+            [message: "length must be equal to %{length}", length: length]
             | errors
           ]
         else

@@ -33,8 +33,8 @@ defmodule AshClickhouse.Type.ChDate do
 
   def ch_type(constraints) do
     Ch.Types.date()
-    |> maybe_low_cardinality(constraints[:low_cardinality?])
     |> maybe_nullable(constraints[:nullable?])
+    |> maybe_low_cardinality(constraints[:low_cardinality?])
   end
 
   defp maybe_nullable(type, true), do: Ch.Types.nullable(type)
@@ -59,6 +59,14 @@ defmodule AshClickhouse.Type.ChDate do
 
   @impl true
   def matches_type?(%Date{}, _), do: true
+
+  def matches_type?(value, constraints) when is_binary(value) do
+    case Ch.cast(value, ch_type(constraints)) do
+      {:ok, _} -> true
+      :error -> false
+    end
+  end
+
   def matches_type?(_, _), do: false
 
   @impl true

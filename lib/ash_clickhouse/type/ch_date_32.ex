@@ -7,6 +7,11 @@ defmodule AshClickhouse.Type.ChDate32 do
       type: :boolean,
       default: false,
       doc: "Whether the date can be null: Nullable(Date)"
+    ],
+    low_cardinality?: [
+      type: :boolean,
+      default: false,
+      doc: "Whether to use LowCardinality optimization"
     ]
   ]
 
@@ -60,7 +65,13 @@ defmodule AshClickhouse.Type.ChDate32 do
 
   @impl true
   def matches_type?(%Date{}, _), do: true
-  def matches_type?(_, _), do: false
+
+  def matches_type?(value, constraints) do
+    case Ch.cast(value, ch_type(constraints)) do
+      {:ok, _} -> true
+      :error -> false
+    end
+  end
 
   @impl true
   def cast_atomic(new_value, _constraints) do

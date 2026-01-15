@@ -67,9 +67,22 @@ defmodule AshClickhouse.Type.ChBool do
   @impl true
   def cast_stored(nil, _), do: {:ok, nil}
 
-  def cast_stored(value, constraints) do
+  def cast_stored(value, constraints) when is_boolean(value) do
     Ch.load(value, nil, ch_type(constraints))
   end
+
+  def cast_stored(1, constraints), do: Ch.load(true, nil, ch_type(constraints))
+  def cast_stored(0, constraints), do: Ch.load(false, nil, ch_type(constraints))
+
+  def cast_stored(value, _constraints) when is_binary(value) do
+    case String.downcase(value) do
+      "true" -> {:ok, true}
+      "false" -> {:ok, false}
+      _ -> :error
+    end
+  end
+
+  def cast_stored(_, _), do: :error
 
   @impl true
 
