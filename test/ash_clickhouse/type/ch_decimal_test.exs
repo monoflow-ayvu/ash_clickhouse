@@ -24,6 +24,24 @@ defmodule AshClickhouse.Type.ChDecimalTest do
 
       assert encode_ch_type(type) == "Nullable(Decimal(18, 4))"
     end
+
+    test "returns correct ClickHouse type without constraints for array version" do
+      assert {:array, {:parameterized, {Ch, {:decimal, 10, 2}}} = subtype} =
+               Ash.Type.storage_type({:array, ChDecimal}, precision: 10, scale: 2)
+
+      assert encode_ch_type({:array, subtype}) == "Array(Decimal(10, 2))"
+    end
+
+    test "returns nullable ClickHouse type with nullable constraint for array version" do
+      assert {:array, {:parameterized, {Ch, {:nullable, {:decimal, 18, 4}}}} = subtype} =
+               Ash.Type.storage_type({:array, ChDecimal},
+                 precision: 18,
+                 scale: 4,
+                 nullable?: true
+               )
+
+      assert encode_ch_type({:array, subtype}) == "Array(Nullable(Decimal(18, 4)))"
+    end
   end
 
   describe "matches_type?/2" do
@@ -38,6 +56,20 @@ defmodule AshClickhouse.Type.ChDecimalTest do
       refute ChDecimal.matches_type?("123.45", [])
       refute ChDecimal.matches_type?([], [])
     end
+
+    test "returns true for arrays of Decimal structs" do
+      assert Ash.Type.matches_type?(
+               {:array, ChDecimal},
+               [Decimal.new("123.45"), Decimal.new("0.001")],
+               []
+             )
+    end
+
+    test "returns false for non-Decimal arrays" do
+      refute Ash.Type.matches_type?({:array, ChDecimal}, [123.45, 678.90], [])
+      refute Ash.Type.matches_type?({:array, ChDecimal}, ["123.45", "678.90"], [])
+      refute Ash.Type.matches_type?({:array, ChDecimal}, [[], {}], [])
+    end
   end
 
   describe "generator" do
@@ -50,19 +82,39 @@ defmodule AshClickhouse.Type.ChDecimalTest do
                  Decimal.cmp(decimal, constraints[:max]) != :gt
              end)
     end
+
+    test "generates arrays of Decimal structs within specified constraints" do
+      constraints = [
+        precision: 10,
+        scale: 2,
+        min: Decimal.new("10.00"),
+        max: Decimal.new("20.00")
+      ]
+
+      generated_arrays =
+        Enum.take(Ash.Type.generator({:array, ChDecimal}, items: constraints), 100)
+
+      assert Enum.all?(generated_arrays, fn arr ->
+               is_list(arr) and
+                 Enum.all?(arr, fn decimal ->
+                   Decimal.cmp(decimal, constraints[:min]) != :lt and
+                     Decimal.cmp(decimal, constraints[:max]) != :gt
+                 end)
+             end)
+    end
   end
 
   describe "apply_constraints/2" do
     test "returns ok for valid Decimal within constraints" do
       constraints = [min: Decimal.new("5.00"), max: Decimal.new("15.00")]
 
-      assert ChDecimal.apply_constraints(Decimal.new("10.00"), constraints) ==
+      assert Ash.Type.apply_constraints(ChDecimal, Decimal.new("10.00"), constraints) ==
                {:ok, Decimal.new("10.00")}
     end
 
     test "returns error for Decimal below min constraint" do
       constraints = [min: Decimal.new("5.00"), max: Decimal.new("15.00")]
-      {:error, errors} = ChDecimal.apply_constraints(Decimal.new("3.00"), constraints)
+      {:error, errors} = Ash.Type.apply_constraints(ChDecimal, Decimal.new("3.00"), constraints)
 
       assert errors == [
                [message: "must be more than or equal to %{min}", min: Decimal.new("5.00")]
@@ -71,11 +123,52 @@ defmodule AshClickhouse.Type.ChDecimalTest do
 
     test "returns error for Decimal above max constraint" do
       constraints = [min: Decimal.new("5.00"), max: Decimal.new("15.00")]
-      {:error, errors} = ChDecimal.apply_constraints(Decimal.new("20.00"), constraints)
+      {:error, errors} = Ash.Type.apply_constraints(ChDecimal, Decimal.new("20.00"), constraints)
 
       assert errors == [
                [message: "must be less than or equal to %{max}", max: Decimal.new("15.00")]
              ]
+    end
+
+    test "returns ok for valid array of Decimals within constraints" do
+      constraints = [min: Decimal.new("5.00"), max: Decimal.new("15.00")]
+
+      assert Ash.Type.apply_constraints(
+               {:array, ChDecimal},
+               [Decimal.new("10.00"), Decimal.new("12.00")],
+               items: constraints
+             ) ==
+               {:ok, [Decimal.new("10.00"), Decimal.new("12.00")]}
+    end
+
+    test "returns error for array with Decimal below min constraint" do
+      constraints = [min: Decimal.new("5.00"), max: Decimal.new("15.00")]
+
+      {:error, errors} =
+        Ash.Type.apply_constraints(
+          {:array, ChDecimal},
+          [Decimal.new("10.00"), Decimal.new("3.00")],
+          items: constraints
+        )
+
+      assert length(errors) == 1
+      [error] = errors
+      assert error[:message] =~ "must be more than or equal to %{min}"
+    end
+
+    test "returns error for array with Decimal above max constraint" do
+      constraints = [min: Decimal.new("5.00"), max: Decimal.new("15.00")]
+
+      {:error, errors} =
+        Ash.Type.apply_constraints(
+          {:array, ChDecimal},
+          [Decimal.new("10.00"), Decimal.new("20.00")],
+          items: constraints
+        )
+
+      assert length(errors) == 1
+      [error] = errors
+      assert error[:message] =~ "must be less than or equal to %{max}"
     end
   end
 
@@ -94,6 +187,37 @@ defmodule AshClickhouse.Type.ChDecimalTest do
     test "returns error for invalid inputs" do
       assert ChDecimal.cast_input("invalid", []) == :error
     end
+
+    test "casts valid array of Decimals correctly" do
+      assert Ash.Type.cast_input(
+               {:array, ChDecimal},
+               [Decimal.new("123.45"), Decimal.new("678.90")],
+               items: [precision: 5, scale: 2]
+             ) ==
+               {:ok, [Decimal.new("123.45"), Decimal.new("678.90")]}
+
+      assert Ash.Type.cast_input({:array, ChDecimal}, ["123.45", "678.90"],
+               items: [precision: 5, scale: 2]
+             ) ==
+               {:ok, [Decimal.new("123.45"), Decimal.new("678.90")]}
+
+      assert Ash.Type.cast_input({:array, ChDecimal}, [123.45, 678.9],
+               items: [precision: 5, scale: 2]
+             ) ==
+               {:ok, [Decimal.new("123.45"), Decimal.new("678.9")]}
+
+      assert Ash.Type.cast_input({:array, ChDecimal}, [nil, Decimal.new("123.45")],
+               items: [precision: 5, scale: 2]
+             ) ==
+               {:ok, [nil, Decimal.new("123.45")]}
+    end
+
+    test "returns error for invalid array inputs" do
+      assert {:error, [[message: _, index: 0, path: [0]]]} =
+               Ash.Type.cast_input({:array, ChDecimal}, ["invalid", Decimal.new("123.45")],
+                 items: [precision: 5, scale: 2]
+               )
+    end
   end
 
   describe "cast_stored/2" do
@@ -106,6 +230,54 @@ defmodule AshClickhouse.Type.ChDecimalTest do
 
     test "returns error for non-string stored values" do
       assert :error = ChDecimal.cast_stored("any", precision: 10, scale: 2)
+    end
+
+    test "casts stored arrays of strings to Decimals" do
+      assert Ash.Type.cast_stored({:array, ChDecimal}, ["123.45", "678.90"],
+               precision: 10,
+               scale: 2
+             ) ==
+               {:ok, [Decimal.new("123.45"), Decimal.new("678.90")]}
+
+      assert Ash.Type.cast_stored({:array, ChDecimal}, [nil, "123.45"], precision: 10, scale: 2) ==
+               {:ok, [nil, Decimal.new("123.45")]}
+    end
+
+    test "returns error for non-string array stored values" do
+      assert {:error, [{:index, 0}]} =
+               Ash.Type.cast_stored({:array, ChDecimal}, ["any", "123.45"],
+                 precision: 10,
+                 scale: 2
+               )
+    end
+  end
+
+  describe "equal?/2" do
+    test "returns true for equal Decimal structs" do
+      decimal = Decimal.new("123.45")
+      assert Ash.Type.equal?(ChDecimal, decimal, decimal)
+      assert Ash.Type.equal?(ChDecimal, nil, nil)
+    end
+
+    test "returns false for different Decimal structs" do
+      refute Ash.Type.equal?(ChDecimal, Decimal.new("123.45"), Decimal.new("678.90"))
+      refute Ash.Type.equal?(ChDecimal, Decimal.new("123.45"), nil)
+      refute Ash.Type.equal?(ChDecimal, nil, Decimal.new("123.45"))
+    end
+
+    test "returns true for equal arrays of Decimal structs" do
+      decimal1 = Decimal.new("123.45")
+      decimal2 = Decimal.new("678.90")
+      assert Ash.Type.equal?({:array, ChDecimal}, [decimal1, decimal2], [decimal1, decimal2])
+      assert Ash.Type.equal?({:array, ChDecimal}, [], [])
+    end
+
+    test "returns false for different arrays of Decimal structs" do
+      decimal1 = Decimal.new("123.45")
+      decimal2 = Decimal.new("678.90")
+      refute Ash.Type.equal?({:array, ChDecimal}, [decimal1, decimal2], [decimal2, decimal1])
+      refute Ash.Type.equal?({:array, ChDecimal}, [decimal1], [decimal1, decimal2])
+      refute Ash.Type.equal?({:array, ChDecimal}, [decimal1, nil], [decimal1, decimal2])
     end
   end
 end

@@ -90,8 +90,10 @@ for size <- [32, 64] do
 
     @impl true
     def generator(constraints) do
-      constraints
-      |> Keyword.take([:min, :max])
+      [
+        min: constraints[:min] || constraints[:greater_than] || -1.0e10,
+        max: constraints[:max] || constraints[:less_than] || 1.0e10
+      ]
       |> StreamData.float()
       |> StreamData.filter(fn value ->
         (!constraints[:less_than] || value < constraints[:less_than]) &&
