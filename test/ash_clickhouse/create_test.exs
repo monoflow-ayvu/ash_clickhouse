@@ -556,7 +556,7 @@ defmodule AshClickhouse.CreateTest do
             ]
           ]
         ],
-        enum8_attr: :enum8_zero,
+        enum8_attr: :enum8_min,
         enum16_attr: :enum16_max
       }
 
@@ -822,7 +822,7 @@ defmodule AshClickhouse.CreateTest do
                     ]
                   ]
                 ],
-                enum8_attr: :enum8_zero,
+                enum8_attr: :enum8_min,
                 enum16_attr: :enum16_max
               }} =
                AllTypes
@@ -1091,7 +1091,7 @@ defmodule AshClickhouse.CreateTest do
                      ]
                    ]
                  ],
-                 enum8_attr: :enum8_zero,
+                 enum8_attr: :enum8_min,
                  enum16_attr: :enum16_max
                }
              ] =
