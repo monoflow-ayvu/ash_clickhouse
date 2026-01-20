@@ -56,7 +56,7 @@ defmodule AshClickhouse.Type.ChStringTest do
 
     test "generate string with min_length constraint" do
       assert ChString
-             |> Ash.Type.generator([min_length: 10])
+             |> Ash.Type.generator(min_length: 10)
              |> Enum.take(100)
              |> Enum.uniq()
              |> Enum.all?(&(String.length(&1) >= 10))
@@ -64,7 +64,7 @@ defmodule AshClickhouse.Type.ChStringTest do
 
     test "generate string with trim and min_length constraint" do
       assert ChString
-             |> Ash.Type.generator([trim?: true, min_length: 10])
+             |> Ash.Type.generator(trim?: true, min_length: 10)
              |> Enum.take(100)
              |> Enum.uniq()
              |> Enum.all?(&(String.length(&1) >= 10))
@@ -100,17 +100,19 @@ defmodule AshClickhouse.Type.ChStringTest do
     test "coerces string to string" do
       assert {:ok, "string"} = Ash.Type.coerce(ChString, "string", [])
     end
+
     test "coerces integer to string" do
       assert {:ok, "123"} = Ash.Type.coerce(ChString, 123, [])
     end
+
     test "coerces float to string" do
       assert {:ok, "123.45"} = Ash.Type.coerce(ChString, 123.45, [])
     end
+
     test "coerces nil to nil" do
       assert {:ok, nil} = Ash.Type.coerce(ChString, nil, [])
     end
   end
-
 
   describe "equal?/2" do
     test "returns true for equal strings" do
@@ -249,5 +251,79 @@ defmodule AshClickhouse.Type.ChStringTest do
       assert {:ok, "test"} = Ash.Type.apply_atomic_constraints(ChString, "test", [])
     end
 
+    test "returns :ok for nil value" do
+      assert :ok = ChString.apply_constraints(nil, [])
+    end
+
+    test "returns {ok, value} when value passes all constraints (default: trim and empty = nil)" do
+      assert {:ok, "abc"} = ChString.apply_constraints("  abc  ", [])
+      assert {:ok, nil} = ChString.apply_constraints("   ", [])
+    end
+
+    test "returns trimmed value if trim? true, allow_empty? true" do
+      assert {:ok, "abc"} = ChString.apply_constraints("  abc  ", trim?: true, allow_empty?: true)
+      assert {:ok, ""} = ChString.apply_constraints("    ", trim?: true, allow_empty?: true)
+    end
+
+    test "returns value as is if trim? false, allow_empty? true" do
+      assert {:ok, "  abc  "} =
+               ChString.apply_constraints("  abc  ", trim?: false, allow_empty?: true)
+
+      assert {:ok, "    "} = ChString.apply_constraints("    ", trim?: false, allow_empty?: true)
+    end
+
+    test "returns nil if value is empty after trimming and allow_empty? is false" do
+      assert {:ok, nil} = ChString.apply_constraints("    ", trim?: true, allow_empty?: false)
+    end
+
+    test "returns nil if value is empty (no trim) and allow_empty? is false" do
+      assert {:ok, nil} = ChString.apply_constraints("    ", trim?: false, allow_empty?: false)
+    end
+
+    test "returns error for string longer than max_length" do
+      assert  {:error, [{:message, "length must be less than or equal to %{max}"}, {:max, 3}]} = ChString.apply_constraints("abcd", max_length: 3)
+    end
+
+    test "returns error for string shorter than min_length" do
+      assert {:error, [{:message, "length must be greater than or equal to %{min}"}, {:min, 5}]} = ChString.apply_constraints("abcd", min_length: 5)
+    end
+
+    test "returns error for value not matching :match regex" do
+      assert  {:error, [{:message, "must match the pattern %{regex}"}, {:regex, "~r/^abc/"}]} =
+               ChString.apply_constraints("testvalue", match: ~r/^abc/)
+    end
+
+    test "returns error for value not matching :match MFA regex" do
+      mfa = {Regex, :compile!, ["^abc"]}
+
+      assert {:error, [{:message, "must match the pattern %{regex}"}, {:regex, "~r/^abc/"}]} =
+               ChString.apply_constraints("test", match: mfa)
+    end
+
+    test "returns multiple errors if multiple constraints fail" do
+      assert {:error, errors} =
+               ChString.apply_constraints(
+                 "x",
+                 min_length: 2,
+                 match: ~r/^abc/
+               )
+
+      assert length(errors) == 2
+      assert Enum.any?(errors, fn err -> Keyword.has_key?(err, :min) end)
+      assert Enum.any?(errors, fn err -> Keyword.has_key?(err, :regex) end)
+    end
+
+    test "returns error for multiple errors with trim? false and allow_empty? true" do
+      assert {:error, errors} =
+               ChString.apply_constraints(
+                 "a",
+                 trim?: false,
+                 allow_empty?: true,
+                 min_length: 4,
+                 match: ~r/^b/
+               )
+
+      assert length(errors) == 2
+    end
   end
 end
