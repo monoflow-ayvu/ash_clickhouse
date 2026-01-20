@@ -42,15 +42,6 @@ defmodule AshClickhouse.DataLayer.Info do
           where expr(status == "active")
         end
       end
-
-  An appropriate `identity_wheres_to_sql` would need to be made to generate the
-  correct migration for the partial index used by the identity:
-
-      postgres do
-        ...
-
-        identity_wheres_to_sql active: "status = 'active'"
-      end
   """
   @spec identity_wheres_to_sql(Ash.Resource.t()) :: keyword(String.t())
   def identity_wheres_to_sql(resource) do
@@ -67,28 +58,6 @@ defmodule AshClickhouse.DataLayer.Info do
   def identity_where_to_sql(resource, identity) do
     identity_wheres_to_sql(resource)[identity]
   end
-
-  # @doc "Checks a version requirement against the resource's repo's postgres version"
-  # def pg_version_matches?(resource, requirement) do
-  #   resource
-  #   |> min_pg_version()
-  #   |> Version.match?(requirement)
-  # end
-
-  # @doc "Gets the resource's repo's postgres version"
-  # def min_pg_version(resource) do
-  #   case repo(resource, :read).min_pg_version() do
-  #     %Version{} = version ->
-  #       version
-
-  #     string when is_binary(string) ->
-  #       IO.warn(
-  #         "Got a `string` for min_pg_version, expected a `Version` struct. Got: #{inspect(string)}. Please call `Version.parse!` before returning the value."
-  #       )
-
-  #       Version.parse!(string)
-  #   end
-  # end
 
   @doc "The configured table for a resource"
   def table(resource) do

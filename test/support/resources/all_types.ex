@@ -121,7 +121,7 @@ defmodule AshClickhouse.Test.Resource.AllTypes do
 
     attribute(:map_attr, :ch_map) do
       public?(true)
-      constraints(key_type: :ch_string, value_type: :ch_string)
+      constraints(key_type: :ch_string, value_type: :ch_string, fields: ["foo", "bar", "baz"])
     end
 
     attribute(:map_attr_with_nullable_str_values, :ch_map) do
@@ -129,7 +129,8 @@ defmodule AshClickhouse.Test.Resource.AllTypes do
 
       constraints(
         key_type: :ch_string,
-        value_type: [ch_string: [nullable?: true]]
+        value_type: [ch_string: [nullable?: true]],
+        fields: ["foo", "bar", "baz"]
       )
     end
 

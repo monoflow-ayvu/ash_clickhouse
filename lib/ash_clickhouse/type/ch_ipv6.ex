@@ -47,6 +47,21 @@ defmodule AshClickhouse.Type.ChIPv6 do
   def constraints, do: @constraints
 
   @impl true
+  def matches_type?(nil, _constraints), do: false
+
+  def matches_type?(value, constraints) do
+    case Ch.cast(value, ch_type(constraints)) do
+      {:ok, _} -> true
+      :error -> false
+    end
+  end
+
+  @impl true
+  def equal?(value1, value2) do
+    cast_input(value1, []) == cast_input(value2, [])
+  end
+
+  @impl true
   def cast_input(value, constraints) do
     Ch.cast(value, ch_type(constraints))
   end
@@ -59,5 +74,19 @@ defmodule AshClickhouse.Type.ChIPv6 do
   @impl true
   def dump_to_native(value, constraints) do
     Ch.dump(value, nil, ch_type(constraints))
+  end
+
+  @impl true
+  def generator(_constraints) do
+    StreamData.tuple({
+      StreamData.integer(0..0xFFFF),
+      StreamData.integer(0..0xFFFF),
+      StreamData.integer(0..0xFFFF),
+      StreamData.integer(0..0xFFFF),
+      StreamData.integer(0..0xFFFF),
+      StreamData.integer(0..0xFFFF),
+      StreamData.integer(0..0xFFFF),
+      StreamData.integer(0..0xFFFF)
+    })
   end
 end

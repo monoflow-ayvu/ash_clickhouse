@@ -39,7 +39,27 @@ defmodule AshClickhouse.Type.ChJSON do
   def coerce(value, constraints), do: cast_input(value, constraints)
 
   @impl true
+  def matches_type?(nil, _constraints), do: false
+
+  def matches_type?(value, constraints) do
+    case cast_input(value, constraints) do
+      {:ok, _} -> true
+      :error -> false
+    end
+  end
+
+  @impl true
   def cast_input(nil, _constraints), do: {:ok, nil}
+
+  def cast_input(value, constraints) when is_binary(value) do
+    case Jason.decode(value) do
+      {:ok, decoded} ->
+        Ch.cast(decoded, ch_type(constraints))
+
+      {:error, _rreason} ->
+        :error
+    end
+  end
 
   def cast_input(value, constraints) do
     case Jason.encode(value) do
@@ -48,15 +68,23 @@ defmodule AshClickhouse.Type.ChJSON do
         |> Jason.decode!()
         |> Ch.cast(ch_type(constraints))
 
-      {:error, reason} ->
-        {:error, "Failed to encode JSON: #{inspect(reason)}"}
+      {:error, _reason} ->
+        :error
     end
   end
 
   @impl true
   def cast_stored(nil, _constraints), do: {:ok, nil}
 
-  def cast_stored(value, constraints), do: Ch.load(value, nil, ch_type(constraints))
+  def cast_stored(value, constraints) do
+    case cast_input(value, constraints) do
+      {:ok, value} ->
+        {:ok, value}
+
+      {:error, reason} ->
+        {:error, reason}
+    end
+  end
 
   @impl true
   def dump_to_native(nil, _constraints), do: {:ok, nil}

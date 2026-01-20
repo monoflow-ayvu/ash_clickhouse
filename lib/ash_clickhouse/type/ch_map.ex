@@ -15,55 +15,10 @@ defmodule AshClickhouse.Type.ChMap do
       """
     ],
     fields: [
-      type: :keyword_list,
-      keys: [
-        *: [
-          type: :keyword_list,
-          keys: [
-            type: [
-              type: Ash.OptionsHelpers.ash_type(),
-              required: true
-            ],
-            allow_nil?: [
-              type: :boolean,
-              default: true
-            ],
-            description: [
-              type: :string
-            ],
-            constraints: [
-              type: :keyword_list,
-              default: []
-            ]
-          ]
-        ]
-      ],
+      type: {:list, :any},
       doc: """
-      The types of the fields in the map, and their constraints.
-
-      If constraints are specified, only those fields will be in the casted map.
-
-      For example:
-
-          fields:  [
-            amount: [
-              type: :integer,
-              description: "The amount of the transaction",
-              constraints: [
-                max: 10
-              ]
-            ],
-            currency: [
-              type: :string,
-              allow_nil?: false,
-              description: "The currency code of the transaction",
-              constraints: [
-                max_length: 3
-              ]
-            ]
-          ]
-
-      allow_nil? is true by default
+      The fields of the map.
+      Example: [:foo, :bar, :baz]
       """
     ]
   ]
@@ -92,57 +47,34 @@ defmodule AshClickhouse.Type.ChMap do
   end
 
   def ch_type(constraints) do
-    ch_key_type = get_type(constraints[:key_type])
-    ch_value_type = get_type(constraints[:value_type])
+    ch_key_type = get_ch_type(constraints[:key_type])
+    ch_value_type = get_ch_type(constraints[:value_type])
 
     Ch.Types.map(ch_key_type, ch_value_type)
+    |> maybe_nullable(constraints[:nullable?])
   end
 
-  defp get_type(type) when is_atom(type) do
+  defp maybe_nullable(type, true), do: Ch.Types.nullable(type)
+  defp maybe_nullable(type, _), do: type
+
+  defp get_ch_type(nil), do: raise("key_type and value_type must be a valid Ash type")
+
+  defp get_ch_type(type) when is_atom(type) do
     Ash.Type.get_type(type).ch_type([])
   end
 
-  defp get_type([{type, constraints}]) when is_atom(type) and is_list(constraints) do
+  defp get_ch_type([{type, constraints}]) when is_atom(type) and is_list(constraints) do
     Ash.Type.get_type(type).ch_type(constraints)
   end
 
-  @impl true
-  def init(constraints) do
-    if is_list(constraints[:fields]) do
-      constraints[:fields]
-      |> List.wrap()
-      |> Enum.reduce_while({:ok, []}, fn {name, config}, {:ok, fields} ->
-        type = Ash.Type.get_type(config[:type])
-        constraints = config[:constraints] || []
+  defp get_ash_type(nil), do: raise("key_type and value_type must be a valid Ash type")
 
-        if Keyword.get(config, :init?, true) do
-          case Ash.Type.init(type, constraints) do
-            {:ok, constraints} ->
-              {:cont,
-               {:ok,
-                [{name, Keyword.merge(config, constraints: constraints, type: type)} | fields]}}
+  defp get_ash_type(type) when is_atom(type) do
+    {Ash.Type.get_type(type), []}
+  end
 
-            {:error, error} ->
-              {:halt, {:error, error}}
-          end
-        else
-          {:cont, {:ok, [{name, config} | fields]}}
-        end
-      end)
-      |> case do
-        {:ok, fields} ->
-          {:ok, Keyword.put(constraints, :fields, Enum.reverse(fields))}
-
-        {:error, error} ->
-          {:error, error}
-      end
-    else
-      if is_nil(constraints[:fields]) do
-        {:ok, constraints}
-      else
-        {:error, "fields must be a list, got `#{constraints[:fields]}`"}
-      end
-    end
+  defp get_ash_type([{type, constraints}]) when is_atom(type) and is_list(constraints) do
+    {Ash.Type.get_type(type), constraints}
   end
 
   @impl true
@@ -173,31 +105,7 @@ defmodule AshClickhouse.Type.ChMap do
   def cast_stored(nil, _), do: {:ok, nil}
 
   def cast_stored(value, constraints) when is_map(value) do
-    if fields = constraints[:fields] do
-      nil_values = constraints[:store_nil_values?]
-
-      Enum.reduce_while(fields, {:ok, %{}}, fn {key, config}, {:ok, acc} ->
-        case fetch_field(value, key) do
-          {:ok, value} ->
-            case Ash.Type.cast_stored(config[:type], value, config[:constraints] || []) do
-              {:ok, value} ->
-                if is_nil(value) && !nil_values do
-                  {:cont, {:ok, acc}}
-                else
-                  {:cont, {:ok, Map.put(acc, key, value)}}
-                end
-
-              other ->
-                {:halt, other}
-            end
-
-          :error ->
-            {:cont, {:ok, acc}}
-        end
-      end)
-    else
-      {:ok, value}
-    end
+    Ch.cast(value, ch_type(constraints))
   end
 
   def cast_stored(_, _), do: :error
@@ -211,77 +119,86 @@ defmodule AshClickhouse.Type.ChMap do
   def apply_constraints(nil, _constraints), do: {:ok, nil}
 
   def apply_constraints(value, constraints) do
-    Enum.reduce(constraints, {:ok, value}, fn
-      {:fields, fields}, {:ok, value} ->
-        check_fields(value, fields)
-
-      {_type, _constraints}, {:ok, value} ->
-        {:ok, value}
-
-      {_, _}, {:error, errors} ->
-        {:error, errors}
-    end)
+    check_fields(value, constraints)
   end
 
   @impl true
   def generator(constraints) do
-    if constraints[:fields] do
-      optional =
-        constraints[:fields]
-        |> Enum.filter(fn {_, value} ->
-          value[:allow_nil?]
-        end)
-        |> Keyword.keys()
+    {field_type, field_contraints} = get_ash_type(constraints[:key_type])
+    {value_type, value_constraints} = get_ash_type(constraints[:value_type])
 
-      constraints[:fields]
-      |> Map.new(fn {key, config} ->
-        type = config[:type]
-        constraints = config[:constraints] || []
-
-        generator =
-          type
-          |> Ash.Type.generator(constraints)
-          |> StreamData.filter(fn item ->
-            with {:ok, value} <- Ash.Type.cast_input(config[:type], item, config[:constraints]),
-                 {:ok, nil} <-
-                   Ash.Type.apply_constraints(config[:type], value, config[:constraints]) do
-              false
-            else
-              _ ->
-                true
-            end
-          end)
-
-        {key, generator}
+    generate = fn type, contraints ->
+      type
+      |> Ash.Type.generator(contraints)
+      |> StreamData.filter(fn item ->
+        with {:ok, value} <- Ash.Type.cast_input(type, item, contraints),
+             {:ok, nil} <-
+               Ash.Type.apply_constraints(type, value, contraints) do
+          false
+        else
+          _ ->
+            true
+        end
       end)
-      |> Ash.Generator.mixed_map(optional)
+    end
+
+    if constraints[:fields] do
+      Map.new(constraints[:fields], fn field ->
+        generator = generate.(value_type, value_constraints)
+
+        {field, generator}
+      end)
+      |> Ash.Generator.mixed_map([])
     else
-      StreamData.constant(%{})
+      field_generator = generate.(field_type, field_contraints)
+      value_generator = generate.(value_type, value_constraints)
+
+      StreamData.list_of(
+        StreamData.fixed_map(%{
+          key: field_generator,
+          value: value_generator
+        }),
+        max_length: 5
+      )
+      |> StreamData.map(fn pairs ->
+        Map.new(pairs, fn %{key: key, value: value} ->
+          {key, value}
+        end)
+      end)
     end
   end
 
-  defp check_fields(value, fields) do
+  defp check_fields(value, constraints) do
     {errors, result} =
-      Enum.reduce(fields, {[], %{}}, fn {field, field_constraints}, {errors_acc, result_acc} ->
-        case fetch_field(value, field) do
-          {:ok, field_value} ->
-            case check_field(result_acc, field, field_value, field_constraints) do
-              {:ok, updated_result} ->
-                {errors_acc, updated_result}
+      if constraints[:fields] do
+        Enum.reduce(constraints[:fields], {[], %{}}, fn
+          field, {errors_acc, result_acc} ->
+            case fetch_field(value, field) do
+              {:ok, field_value} ->
+                case check_field(result_acc, field, field_value, constraints) do
+                  {:ok, updated_result} ->
+                    {errors_acc, updated_result}
 
-              {:error, field_errors} ->
-                {errors_acc ++ field_errors, result_acc}
-            end
+                  {:error, field_errors} ->
+                    {errors_acc ++ field_errors, result_acc}
+                end
 
-          :error ->
-            if field_constraints[:allow_nil?] == false do
-              field_error = [message: "field must be present", field: field]
-              {errors_acc ++ [field_error], result_acc}
-            else
-              {errors_acc, result_acc}
+              :error ->
+                field_error = [message: "field must be present", field: field]
+                {errors_acc ++ [field_error], result_acc}
             end
-        end
-      end)
+        end)
+      else
+        Enum.reduce(value, {[], %{}}, fn {field, value}, {errors_acc, result_acc} ->
+          case check_field(result_acc, field, value, constraints) do
+            {:ok, updated_result} ->
+              {errors_acc, updated_result}
+
+            {:error, field_errors} ->
+              {errors_acc ++ field_errors, result_acc}
+          end
+        end)
+      end
 
     case errors do
       [] -> {:ok, result}
@@ -289,27 +206,23 @@ defmodule AshClickhouse.Type.ChMap do
     end
   end
 
-  defp check_field(result, field, field_value, field_constraints) do
-    case Ash.Type.cast_input(
-           field_constraints[:type],
-           field_value,
-           field_constraints[:constraints] || []
-         ) do
-      {:ok, field_value} ->
-        case Ash.Type.apply_constraints(
-               field_constraints[:type],
-               field_value,
-               field_constraints[:constraints] || []
-             ) do
-          {:ok, nil} ->
-            if field_constraints[:allow_nil?] == false do
-              {:error, [[message: "value must not be nil", field: field]]}
-            else
-              {:ok, Map.put(result, field, nil)}
-            end
+  defp check_field(result, field, field_value, constraints) do
+    with {:ok, field} <- check_field_type(field, constraints[:key_type]),
+         {:ok, value} <- check_field_value_type(field, field_value, constraints[:value_type]) do
+      {:ok, Map.put(result, field, value)}
+    else
+      error -> error
+    end
+  end
 
-          {:ok, field_value} ->
-            {:ok, Map.put(result, field, field_value)}
+  defp check_field_type(field, ch_type) do
+    {type, constraints} = get_ash_type(ch_type)
+
+    case Ash.Type.cast_input(type, field, constraints) do
+      {:ok, casted_field} ->
+        case Ash.Type.apply_constraints(type, casted_field, constraints) do
+          {:ok, final_field} ->
+            {:ok, final_field}
 
           {:error, errors} ->
             {:error,
@@ -324,6 +237,31 @@ defmodule AshClickhouse.Type.ChMap do
 
       :error ->
         {:error, [[message: "invalid value", field: field]]}
+    end
+  end
+
+  defp check_field_value_type(field, field_value, ch_type) do
+    {type, constraints} = get_ash_type(ch_type)
+
+    case Ash.Type.cast_input(type, field_value, constraints) do
+      {:ok, casted_field_value} ->
+        case Ash.Type.apply_constraints(type, casted_field_value, constraints) do
+          {:ok, final_field_value} ->
+            {:ok, final_field_value}
+
+          {:error, errors} ->
+            {:error,
+             Ash.Type.CompositeTypeHelpers.convert_constraint_errors_to_keyword_lists(
+               errors,
+               field
+             )}
+        end
+
+      {:error, message} ->
+        {:error, [[message: message, field: field]]}
+
+      :error ->
+        {:error, [[message: "is invalid", field: field]]}
     end
   end
 

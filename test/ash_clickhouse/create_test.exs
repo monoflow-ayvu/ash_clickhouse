@@ -368,7 +368,8 @@ defmodule AshClickhouse.CreateTest do
         nullable_decimal256_attr: nil,
         json_attr: %{"foo" => "bar"},
         nullable_json_attr: nil,
-        map_attr: %{"key1" => "value1", "key2" => "value2"},
+        map_attr: %{"foo" => "value1", "bar" => "value2", "baz" => "value3"},
+        # map_attr_with_nullable_str_values:
         ipv4_attr: "192.168.1.1",
         nullable_ipv4_attr: nil,
         ipv6_attr: "2001:0db8:85a3:0000:0000:8a2e:0370:7334",
@@ -481,8 +482,8 @@ defmodule AshClickhouse.CreateTest do
         array_of_json_attr: [%{"foo" => "bar"}, %{"baz" => "qux"}],
         array_of_nullable_json_attr: [%{"foo" => "bar"}, %{"baz" => "qux"}],
         array_of_map_attr: [
-          %{"key1" => "value1", "key2" => "value2"},
-          %{"key3" => "value3", "key4" => "value4"}
+          %{"foo" => "value1", "bar" => "value2", "baz" => "value3"},
+          %{"foo" => "value4", "bar" => "value5", "baz" => "value6"}
         ],
         array_of_ipv4_attr: ["192.168.1.1", "192.168.1.2", "192.168.1.3"],
         array_of_nullable_ipv4_attr: ["192.168.1.1", "192.168.1.2", nil],
@@ -621,7 +622,7 @@ defmodule AshClickhouse.CreateTest do
                 nullable_decimal256_attr: nil,
                 json_attr: %{"foo" => "bar"},
                 nullable_json_attr: nil,
-                map_attr: %{"key1" => "value1", "key2" => "value2"},
+                map_attr: %{"foo" => "value1", "bar" => "value2", "baz" => "value3"},
                 point_attr: {12.34, 56.78},
                 ring_attr: [
                   {1.0, 2.0},
@@ -747,8 +748,8 @@ defmodule AshClickhouse.CreateTest do
                 array_of_json_attr: [%{"foo" => "bar"}, %{"baz" => "qux"}],
                 array_of_nullable_json_attr: [%{"foo" => "bar"}, %{"baz" => "qux"}],
                 array_of_map_attr: [
-                  %{"key1" => "value1", "key2" => "value2"},
-                  %{"key3" => "value3", "key4" => "value4"}
+                  %{"foo" => "value1", "bar" => "value2", "baz" => "value3"},
+                  %{"foo" => "value4", "bar" => "value5", "baz" => "value6"}
                 ],
                 array_of_ipv4_attr: [{192, 168, 1, 1}, {192, 168, 1, 2}, {192, 168, 1, 3}],
                 array_of_nullable_ipv4_attr: [{192, 168, 1, 1}, {192, 168, 1, 2}, nil],
@@ -890,7 +891,7 @@ defmodule AshClickhouse.CreateTest do
                  nullable_decimal256_attr: nil,
                  json_attr: %{"foo" => "bar"},
                  nullable_json_attr: nil,
-                 map_attr: %{"key1" => "value1", "key2" => "value2"},
+                 map_attr: %{"foo" => "value1", "bar" => "value2", "baz" => "value3"},
                  point_attr: {12.34, 56.78},
                  ring_attr: [
                    {1.0, 2.0},
@@ -1016,8 +1017,8 @@ defmodule AshClickhouse.CreateTest do
                  array_of_json_attr: [%{"foo" => "bar"}, %{"baz" => "qux"}],
                  array_of_nullable_json_attr: [%{"foo" => "bar"}, %{"baz" => "qux"}],
                  array_of_map_attr: [
-                   %{"key1" => "value1", "key2" => "value2"},
-                   %{"key3" => "value3", "key4" => "value4"}
+                   %{"foo" => "value1", "bar" => "value2", "baz" => "value3"},
+                   %{"foo" => "value4", "bar" => "value5", "baz" => "value6"}
                  ],
                  array_of_ipv4_attr: [{192, 168, 1, 1}, {192, 168, 1, 2}, {192, 168, 1, 3}],
                  array_of_nullable_ipv4_attr: [{192, 168, 1, 1}, {192, 168, 1, 2}, nil],
