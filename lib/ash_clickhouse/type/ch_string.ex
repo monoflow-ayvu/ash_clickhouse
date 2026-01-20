@@ -270,10 +270,14 @@ defmodule AshClickhouse.Type.ChString do
         end
 
       {:match, regex}, errors ->
-        {m, f, a} = regex
-
         regex =
-          apply(m, f, a)
+          case regex do
+            {m, f, a} ->
+              apply(m, f, a)
+
+            regex ->
+              regex
+          end
 
         if Regex.match?(regex, value) do
           errors
