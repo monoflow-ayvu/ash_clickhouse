@@ -153,7 +153,7 @@ defmodule AshClickhouse.CreateTest do
                 errors: [
                   %Ash.Error.Changes.InvalidAttribute{
                     field: :age,
-                    message: "is invalid",
+                    message: "must be an integer between 0 and (2^8 - 1)",
                     private_vars: nil,
                     value: 20.5,
                     has_value?: true,

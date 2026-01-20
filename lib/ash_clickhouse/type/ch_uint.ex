@@ -5,11 +5,11 @@ for size <- [8, 16, 32, 64, 128, 256] do
   defmodule module_name do
     @constraints [
       max: [
-        type: {:custom, __MODULE__, :integer, []},
+        type: {:custom, __MODULE__, :non_negative_integer, []},
         doc: "Enforces a maximum on the value"
       ],
       min: [
-        type: {:custom, __MODULE__, :integer, []},
+        type: {:custom, __MODULE__, :non_negative_integer, []},
         doc: "Enforces a minimum on the value"
       ],
       low_cardinality?: [
@@ -41,7 +41,7 @@ for size <- [8, 16, 32, 64, 128, 256] do
 
     @impl true
     def matches_type?(v, _) do
-      is_integer(v)
+      is_integer(v) and v >= 0 and v <= 2 ** unquote(size) - 1
     end
 
     @impl true
@@ -130,18 +130,14 @@ for size <- [8, 16, 32, 64, 128, 256] do
 
     @impl true
     def generator(constraints) do
-      min = constraints[:min] || -2_147_483_648
-      max = constraints[:max] || 2_147_483_647
+      min = constraints[:min] || 0
+      max = constraints[:max] || 2 ** unquote(size) - 1
 
       StreamData.integer(min..max)
     end
 
     @impl true
     def constraints, do: @constraints
-
-    @doc false
-    def integer(value) when is_integer(value), do: {:ok, value}
-    def integer(_), do: {:error, "must be an integer"}
 
     def apply_constraints(nil, _), do: :ok
 
@@ -157,7 +153,7 @@ for size <- [8, 16, 32, 64, 128, 256] do
 
           {:min, min}, errors ->
             if value < min do
-              [[message: "must be more than or equal to %{min}", min: min] | errors]
+              [[message: "must be greater than or equal to %{min}", min: min] | errors]
             else
               errors
             end
@@ -173,8 +169,14 @@ for size <- [8, 16, 32, 64, 128, 256] do
     end
 
     @impl true
+    def cast_input(nil, _), do: {:ok, nil}
+
     def cast_input(value, constraints) do
-      Ch.cast(value, ch_type(constraints))
+      if is_integer(value) and value >= 0 and value <= 2 ** unquote(size) - 1 do
+        Ch.cast(value, ch_type(constraints))
+      else
+        {:error, "must be an integer between 0 and (2^#{unquote(size)} - 1)"}
+      end
     end
 
     @impl true

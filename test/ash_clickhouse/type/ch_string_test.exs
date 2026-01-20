@@ -281,15 +281,17 @@ defmodule AshClickhouse.Type.ChStringTest do
     end
 
     test "returns error for string longer than max_length" do
-      assert  {:error, [{:message, "length must be less than or equal to %{max}"}, {:max, 3}]} = ChString.apply_constraints("abcd", max_length: 3)
+      assert {:error, [{:message, "length must be less than or equal to %{max}"}, {:max, 3}]} =
+               ChString.apply_constraints("abcd", max_length: 3)
     end
 
     test "returns error for string shorter than min_length" do
-      assert {:error, [{:message, "length must be greater than or equal to %{min}"}, {:min, 5}]} = ChString.apply_constraints("abcd", min_length: 5)
+      assert {:error, [{:message, "length must be greater than or equal to %{min}"}, {:min, 5}]} =
+               ChString.apply_constraints("abcd", min_length: 5)
     end
 
     test "returns error for value not matching :match regex" do
-      assert  {:error, [{:message, "must match the pattern %{regex}"}, {:regex, "~r/^abc/"}]} =
+      assert {:error, [{:message, "must match the pattern %{regex}"}, {:regex, "~r/^abc/"}]} =
                ChString.apply_constraints("testvalue", match: ~r/^abc/)
     end
 
