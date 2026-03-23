@@ -97,6 +97,5 @@ if Mix.env() == :test do
     ecto_repos: [AshClickhouse.TestRepo],
     ash_domains: [AshClickhouse.Test.Domain]
 
-  config :ash_clickhouse, AshClickhouse.TestRepo,
-    url: "http://user:password@localhost:8123/default"
+  config :ash_clickhouse, AshClickhouse.TestRepo, url: "http://default:@localhost:8123/default"
 end

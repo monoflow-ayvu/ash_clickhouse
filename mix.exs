@@ -5,19 +5,12 @@ defmodule AshClickhouse.MixProject do
     [
       app: :ash_clickhouse,
       version: "0.1.0",
-      elixir: "~> 1.18",
+      elixir: "~> 1.19",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
       elixirc_paths: elixirc_paths(Mix.env()),
       aliases: aliases(),
-      test_coverage: [tool: ExCoveralls],
-      preferred_cli_env: [
-        coveralls: :test,
-        "coveralls.detail": :test,
-        "coveralls.post": :test,
-        "coveralls.html": :test,
-        "coveralls.cobertura": :test
-      ]
+      test_coverage: [tool: ExCoveralls]
     ]
   end
 
@@ -94,6 +87,19 @@ defmodule AshClickhouse.MixProject do
     [
       test: ["ecto.create --quiet", "ecto.migrate", "test"],
       "ecto.reset": ["ecto.drop", "ecto.create --quiet", "ecto.migrate"]
+    ]
+  end
+
+  def cli do
+    [
+      preferred_envs: [
+        coveralls: :test,
+        "coveralls.detail": :test,
+        "coveralls.post": :test,
+        "coveralls.html": :test,
+        "coveralls.json": :test,
+        "coveralls.cobertura": :test
+      ]
     ]
   end
 end
