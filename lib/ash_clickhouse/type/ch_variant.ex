@@ -26,16 +26,6 @@ defmodule AshClickhouse.Type.ChVariant do
       end
       ```
       """
-    ],
-    nullable?: [
-      type: :boolean,
-      default: false,
-      doc: "Whether the variant can be null: Nullable(Variant)"
-    ],
-    low_cardinality?: [
-      type: :boolean,
-      default: false,
-      doc: "Whether the variant is low cardinality: LowCardinality(Variant)"
     ]
   ]
 
@@ -63,8 +53,6 @@ defmodule AshClickhouse.Type.ChVariant do
     constraints[:types]
     |> Enum.map(&get_type/1)
     |> Ch.Types.variant()
-    |> maybe_nullable(constraints[:nullable?])
-    |> maybe_low_cardinality(constraints[:low_cardinality?])
   end
 
   defp get_type({type, constraints}) when is_atom(type) and is_list(constraints) do
@@ -74,12 +62,6 @@ defmodule AshClickhouse.Type.ChVariant do
   defp get_type(type) when is_atom(type) do
     Ash.Type.get_type(type).ch_type([])
   end
-
-  defp maybe_nullable(type, true), do: Ch.Types.nullable(type)
-  defp maybe_nullable(type, _), do: type
-
-  defp maybe_low_cardinality(type, true), do: Ch.Types.low_cardinality(type)
-  defp maybe_low_cardinality(type, _), do: type
 
   def coerce(value, constraints), do: cast_input(value, constraints)
 
