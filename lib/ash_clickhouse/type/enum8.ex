@@ -357,7 +357,7 @@ defmodule AshClickhouse.Type.ChEnum8 do
 
         Map.put(acc, value, Map.new(details))
 
-      value, acc ->
+      {value, _integer}, acc ->
         Map.put(acc, value, %{
           description: nil,
           label: humanize(value)
