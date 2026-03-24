@@ -28,11 +28,6 @@ defmodule AshClickhouse.Type.ChTuple do
       ```
       """
     ],
-    low_cardinality?: [
-      type: :boolean,
-      default: false,
-      doc: "Whether the Tuple is a low cardinality type: LowCardinality(Tuple)"
-    ]
   ]
 
   @moduledoc """
@@ -55,11 +50,7 @@ defmodule AshClickhouse.Type.ChTuple do
     constraints[:types]
     |> Enum.map(&get_type/1)
     |> Ch.Types.tuple()
-    |> maybe_low_cardinality(constraints[:low_cardinality?])
   end
-
-  defp maybe_low_cardinality(type, true), do: Ch.Types.low_cardinality(type)
-  defp maybe_low_cardinality(type, _), do: type
 
   defp get_type({type, constraints}) when is_atom(type) and is_list(constraints) do
     Ash.Type.get_type(type).ch_type(constraints)
