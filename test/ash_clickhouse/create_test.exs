@@ -361,6 +361,7 @@ defmodule AshClickhouse.CreateTest do
         decimal64_attr: Decimal.new("0.123456789123456789"),
         nullable_decimal64_attr: nil,
         decimal128_attr: Decimal.new("0.12345678912345678912345678912345678912"),
+        nullable_decimal128_attr: nil,
         decimal256_attr:
           Decimal.new(
             "0.1234567891234567891234567891234567891234567891234567891234567891234567891234"
@@ -369,7 +370,6 @@ defmodule AshClickhouse.CreateTest do
         json_attr: %{"foo" => "bar"},
         nullable_json_attr: nil,
         map_attr: %{"foo" => "value1", "bar" => "value2", "baz" => "value3"},
-        # map_attr_with_nullable_str_values:
         ipv4_attr: "192.168.1.1",
         nullable_ipv4_attr: nil,
         ipv6_attr: "2001:0db8:85a3:0000:0000:8a2e:0370:7334",
@@ -507,6 +507,21 @@ defmodule AshClickhouse.CreateTest do
           nil,
           "550e8400-e29b-41d4-a716-446655440002"
         ],
+        array_of_decimal256_attr: [
+          Decimal.new(
+            "0.1234567891234567891234567891234567891234567891234567891234567891234567891234"
+          ),
+          Decimal.new(
+            "0.1234567891234567891234567891234567891234567891234567891234567891234567891234"
+          )
+        ],
+        array_of_nullable_decimal256_attr: [
+          nil,
+          Decimal.new(
+            "0.1234567891234567891234567891234567891234567891234567891234567891234567891234"
+          )
+        ],
+        array_of_variant_attr: ["foo", 42],
         array_of_tuple_attr: [{"foo", 42, true}, {"bar", 43, false}, {"baz", 44, true}],
         array_of_point_attr: [{12.34, 56.78}, {12.34, 56.78}, {12.34, 56.78}],
         array_of_ring_attr: [
@@ -613,6 +628,7 @@ defmodule AshClickhouse.CreateTest do
                   exp: -38,
                   sign: 1
                 },
+                nullable_decimal128_attr: nil,
                 decimal256_attr: %Decimal{
                   coef:
                     1_234_567_891_234_567_891_234_567_891_234_567_891_234_567_891_234_567_891_234_567_891_234_567_891_234,
@@ -773,6 +789,30 @@ defmodule AshClickhouse.CreateTest do
                   nil,
                   "550e8400-e29b-41d4-a716-446655440002"
                 ],
+                array_of_decimal256_attr: [
+                  %Decimal{
+                    coef:
+                      1_234_567_891_234_567_891_234_567_891_234_567_891_234_567_891_234_567_891_234_567_891_234_567_891_234,
+                    exp: -76,
+                    sign: 1
+                  },
+                  %Decimal{
+                    coef:
+                      1_234_567_891_234_567_891_234_567_891_234_567_891_234_567_891_234_567_891_234_567_891_234_567_891_234,
+                    exp: -76,
+                    sign: 1
+                  }
+                ],
+                array_of_nullable_decimal256_attr: [
+                  nil,
+                  %Decimal{
+                    coef:
+                      1_234_567_891_234_567_891_234_567_891_234_567_891_234_567_891_234_567_891_234_567_891_234_567_891_234,
+                    exp: -76,
+                    sign: 1
+                  }
+                ],
+                array_of_variant_attr: ["foo", 42],
                 array_of_tuple_attr: [{"foo", 42, true}, {"bar", 43, false}, {"baz", 44, true}],
                 array_of_point_attr: [{12.34, 56.78}, {12.34, 56.78}, {12.34, 56.78}],
                 array_of_ring_attr: [
@@ -882,6 +922,7 @@ defmodule AshClickhouse.CreateTest do
                    exp: -38,
                    sign: 1
                  },
+                 nullable_decimal128_attr: nil,
                  decimal256_attr: %Decimal{
                    coef:
                      1_234_567_891_234_567_891_234_567_891_234_567_891_234_567_891_234_567_891_234_567_891_234_567_891_234,
@@ -1042,6 +1083,30 @@ defmodule AshClickhouse.CreateTest do
                    nil,
                    "550e8400-e29b-41d4-a716-446655440002"
                  ],
+                 array_of_decimal256_attr: [
+                   %Decimal{
+                     coef:
+                       1_234_567_891_234_567_891_234_567_891_234_567_891_234_567_891_234_567_891_234_567_891_234_567_891_234,
+                     exp: -76,
+                     sign: 1
+                   },
+                   %Decimal{
+                     coef:
+                       1_234_567_891_234_567_891_234_567_891_234_567_891_234_567_891_234_567_891_234_567_891_234_567_891_234,
+                     exp: -76,
+                     sign: 1
+                   }
+                 ],
+                 array_of_nullable_decimal256_attr: [
+                   nil,
+                   %Decimal{
+                     coef:
+                       1_234_567_891_234_567_891_234_567_891_234_567_891_234_567_891_234_567_891_234_567_891_234_567_891_234,
+                     exp: -76,
+                     sign: 1
+                   }
+                 ],
+                 array_of_variant_attr: ["foo", 42],
                  array_of_tuple_attr: [{"foo", 42, true}, {"bar", 43, false}, {"baz", 44, true}],
                  array_of_point_attr: [{12.34, 56.78}, {12.34, 56.78}, {12.34, 56.78}],
                  array_of_ring_attr: [
@@ -1099,6 +1164,253 @@ defmodule AshClickhouse.CreateTest do
                AllTypes
                |> Ash.Query.filter(string_attr == "Test String")
                |> Ash.read!()
+    end
+
+    @tag timeout: 100_000
+    test "creates insert with nullable fields having actual values" do
+      params = %{
+        string_attr: "Nullable Fields Test",
+        nullable_string_attr: "Not nil",
+        low_cardinality_string_attr: "LowCard",
+        low_cardinality_nullable_string_attr: "NotNullLowCard",
+        fixed_string_attr: String.duplicate("B", 16),
+        int8_attr: -128,
+        nullable_int8_attr: 42,
+        int16_attr: -32_768,
+        nullable_int16_attr: 100,
+        int32_attr: -2_147_483_648,
+        nullable_int32_attr: 2_147_483_647,
+        int64_attr: -9_223_372_036_854_775_808,
+        nullable_int64_attr: 9_223_372_036_854_775_807,
+        int128_attr: 1,
+        nullable_int128_attr: 170_141_183_460_469_231_731_687_303_715_884_105_727,
+        int256_attr: 1,
+        nullable_int256_attr: 2,
+        uint8_attr: 0,
+        nullable_uint8_attr: 255,
+        uint16_attr: 0,
+        nullable_uint16_attr: 65_535,
+        uint32_attr: 0,
+        nullable_uint32_attr: 4_294_967_295,
+        uint64_attr: 0,
+        nullable_uint64_attr: 18_446_744_073_709_551_615,
+        uint128_attr: 0,
+        nullable_uint128_attr: 340_282_366_920_938_463_463_374_607_431_768_211_455,
+        uint256_attr: 1,
+        nullable_uint256_attr: 2,
+        float32_attr: 1.0,
+        nullable_float32_attr: 2.5,
+        float64_attr: 1.0,
+        nullable_float64_attr: 3.14159,
+        bool_attr: false,
+        atom_attr: :some_atom,
+        date_attr: ~D[2024-06-15],
+        nullable_date_attr: ~D[2024-12-31],
+        date32_attr: ~D[2024-06-15],
+        datetime_attr: ~U[2024-06-15 08:00:00Z],
+        datetime64_attr: ~U[2024-06-15 08:00:00.123456Z],
+        decimal_attr: Decimal.new("99.99"),
+        decimal32_attr: Decimal.new("1.0"),
+        nullable_decimal32_attr: Decimal.new("2.0"),
+        decimal64_attr: Decimal.new("1.0"),
+        nullable_decimal64_attr: Decimal.new("3.0"),
+        decimal128_attr: Decimal.new("0.12345678912345678912345678912345678912"),
+        nullable_decimal128_attr: Decimal.new("0.12345678912345678912345678912345678912"),
+        decimal256_attr: Decimal.new("0.1234567891234567891234567891234567891234567891234567891234567891234567891234"),
+        nullable_decimal256_attr: Decimal.new("0.1234567891234567891234567891234567891234567891234567891234567891234567891234"),
+        json_attr: %{"key" => "value"},
+        nullable_json_attr: %{"nested" => %{"a" => 1}},
+        map_attr: %{"foo" => "a", "bar" => "b", "baz" => "c"},
+        ipv4_attr: "10.0.0.1",
+        nullable_ipv4_attr: "172.16.0.1",
+        ipv6_attr: "::1",
+        nullable_ipv6_attr: "fe80::1",
+        uuid_attr: "550e8400-e29b-41d4-a716-446655440000",
+        nullable_uuid_attr: "550e8400-e29b-41d4-a716-446655440001",
+        tuple_attr: {"hello", 99, false},
+        point_attr: {0.0, 0.0},
+        ring_attr: [{0.0, 0.0}, {1.0, 0.0}, {0.0, 1.0}],
+        polygon_attr: [[{0.0, 0.0}, {1.0, 0.0}, {0.0, 1.0}]],
+        multipolygon_attr: [[[{0.0, 0.0}, {1.0, 0.0}, {0.0, 1.0}]]],
+        simple_agg_func_attr: 0,
+        variant_attr: 42,
+        array_of_string_attr: ["a"],
+        array_of_low_cardinality_string_attr: ["a"],
+        array_of_nullable_string_attr: ["b"],
+        array_of_low_cardinality_nullable_string_attr: ["c"],
+        array_of_int32_attr: [0],
+        array_of_nullable_int32_attr: [1],
+        array_of_int64_attr: [0],
+        array_of_nullable_int64_attr: [2],
+        array_of_uint32_attr: [0],
+        array_of_nullable_uint32_attr: [3],
+        array_of_uint64_attr: [0],
+        array_of_nullable_uint64_attr: [4],
+        array_of_float32_attr: [0.0],
+        array_of_nullable_float32_attr: [1.5],
+        array_of_float64_attr: [0.0],
+        array_of_nullable_float64_attr: [2.5],
+        array_of_bool_attr: [false],
+        array_of_date_attr: [~D[2024-01-01]],
+        array_of_nullable_date_attr: [~D[2024-06-15]],
+        array_of_date32_attr: [~D[2024-01-01]],
+        array_of_nullable_date32_attr: [~D[2024-06-15]],
+        array_of_datetime_attr: [~U[2024-01-01 00:00:00Z]],
+        array_of_nullable_datetime_attr: [~U[2024-06-15 00:00:00Z]],
+        array_of_datetime64_attr: [~U[2024-01-01 00:00:00.000000Z]],
+        array_of_nullable_datetime64_attr: [~U[2024-06-15 00:00:00.000000Z]],
+        array_of_decimal32_attr: [Decimal.new("1.0")],
+        array_of_nullable_decimal32_attr: [nil],
+        array_of_decimal64_attr: [Decimal.new("1.0")],
+        array_of_nullable_decimal64_attr: [nil],
+        array_of_decimal128_attr: [Decimal.new("0.12345678912345678912345678912345678912")],
+        array_of_nullable_decimal128_attr: [nil],
+        array_of_decimal256_attr: [Decimal.new("0.1234567891234567891234567891234567891234567891234567891234567891234567891234")],
+        array_of_nullable_decimal256_attr: [nil],
+        array_of_json_attr: [%{"x" => 1}],
+        array_of_nullable_json_attr: [nil],
+        array_of_map_attr: [%{"foo" => "v", "bar" => "v", "baz" => "v"}],
+        array_of_ipv4_attr: ["10.0.0.1"],
+        array_of_nullable_ipv4_attr: [nil],
+        array_of_ipv6_attr: ["::1"],
+        array_of_nullable_ipv6_attr: [nil],
+        array_of_uuid_attr: ["550e8400-e29b-41d4-a716-446655440000"],
+        array_of_nullable_uuid_attr: [nil],
+        array_of_variant_attr: ["hello"],
+        array_of_tuple_attr: [{"x", 1, true}],
+        array_of_point_attr: [{0.0, 0.0}],
+        array_of_ring_attr: [[{0.0, 0.0}, {1.0, 0.0}, {0.0, 1.0}]],
+        array_of_polygon_attr: [[[{0.0, 0.0}, {1.0, 0.0}, {0.0, 1.0}]]],
+        array_of_multipolygon_attr: [[[[{0.0, 0.0}, {1.0, 0.0}, {0.0, 1.0}]]]],
+        enum8_attr: :enum8_zero,
+        enum16_attr: :enum16_zero
+      }
+
+      assert {:ok, %AllTypes{
+        string_attr: "Nullable Fields Test",
+        nullable_string_attr: "Not nil",
+        nullable_int8_attr: 42,
+        nullable_uint8_attr: 255,
+        nullable_float32_attr: _,
+        nullable_float64_attr: 3.14159,
+        nullable_date_attr: ~D[2024-12-31],
+        nullable_uuid_attr: "550e8400-e29b-41d4-a716-446655440001",
+        nullable_ipv4_attr: _,
+        nullable_json_attr: %{"nested" => %{"a" => 1}},
+        bool_attr: false,
+        enum8_attr: :enum8_zero,
+        enum16_attr: :enum16_zero
+      }} =
+        AllTypes
+        |> Ash.Changeset.for_create(:create, params)
+        |> Ash.create()
+    end
+
+    @tag timeout: 100_000
+    test "creates insert with enum boundary values" do
+      for {e8, e16} <- [
+            {:enum8_min, :enum16_min},
+            {:enum8_zero, :enum16_zero},
+            {:enum8_max, :enum16_max}
+          ] do
+        params = %{
+          string_attr: "Enum Test #{e8} #{e16}",
+          low_cardinality_string_attr: "x",
+          fixed_string_attr: String.duplicate("C", 16),
+          int8_attr: 0,
+          int16_attr: 0,
+          int32_attr: 0,
+          int64_attr: 0,
+          int128_attr: 0,
+          int256_attr: 0,
+          uint8_attr: 0,
+          uint16_attr: 0,
+          uint32_attr: 0,
+          uint64_attr: 0,
+          uint128_attr: 0,
+          uint256_attr: 0,
+          float32_attr: 0.0,
+          float64_attr: 0.0,
+          bool_attr: true,
+          atom_attr: :x,
+          date_attr: ~D[2024-01-01],
+          date32_attr: ~D[2024-01-01],
+          datetime_attr: ~U[2024-01-01 00:00:00Z],
+          datetime64_attr: ~U[2024-01-01 00:00:00.000000Z],
+          decimal_attr: Decimal.new("0.01"),
+          decimal32_attr: Decimal.new("0.1"),
+          decimal64_attr: Decimal.new("0.1"),
+          decimal128_attr: Decimal.new("0.12345678912345678912345678912345678912"),
+          decimal256_attr: Decimal.new("0.1234567891234567891234567891234567891234567891234567891234567891234567891234"),
+          json_attr: %{},
+          map_attr: %{"foo" => "a", "bar" => "b", "baz" => "c"},
+          ipv4_attr: "127.0.0.1",
+          ipv6_attr: "::1",
+          uuid_attr: "550e8400-e29b-41d4-a716-446655440000",
+          tuple_attr: {"a", 1, true},
+          point_attr: {0.0, 0.0},
+          ring_attr: [{0.0, 0.0}, {1.0, 0.0}, {0.0, 1.0}],
+          polygon_attr: [[{0.0, 0.0}, {1.0, 0.0}, {0.0, 1.0}]],
+          multipolygon_attr: [[[{0.0, 0.0}, {1.0, 0.0}, {0.0, 1.0}]]],
+          simple_agg_func_attr: 0,
+          variant_attr: "v",
+          array_of_string_attr: [],
+          array_of_low_cardinality_string_attr: [],
+          array_of_nullable_string_attr: [],
+          array_of_low_cardinality_nullable_string_attr: [],
+          array_of_int32_attr: [],
+          array_of_nullable_int32_attr: [],
+          array_of_int64_attr: [],
+          array_of_nullable_int64_attr: [],
+          array_of_uint32_attr: [],
+          array_of_nullable_uint32_attr: [],
+          array_of_uint64_attr: [],
+          array_of_nullable_uint64_attr: [],
+          array_of_float32_attr: [],
+          array_of_nullable_float32_attr: [],
+          array_of_float64_attr: [],
+          array_of_nullable_float64_attr: [],
+          array_of_bool_attr: [],
+          array_of_date_attr: [],
+          array_of_nullable_date_attr: [],
+          array_of_date32_attr: [],
+          array_of_nullable_date32_attr: [],
+          array_of_datetime_attr: [],
+          array_of_nullable_datetime_attr: [],
+          array_of_datetime64_attr: [],
+          array_of_nullable_datetime64_attr: [],
+          array_of_decimal32_attr: [],
+          array_of_nullable_decimal32_attr: [],
+          array_of_decimal64_attr: [],
+          array_of_nullable_decimal64_attr: [],
+          array_of_decimal128_attr: [],
+          array_of_nullable_decimal128_attr: [],
+          array_of_decimal256_attr: [],
+          array_of_nullable_decimal256_attr: [],
+          array_of_json_attr: [],
+          array_of_nullable_json_attr: [],
+          array_of_map_attr: [],
+          array_of_ipv4_attr: [],
+          array_of_nullable_ipv4_attr: [],
+          array_of_ipv6_attr: [],
+          array_of_nullable_ipv6_attr: [],
+          array_of_uuid_attr: [],
+          array_of_nullable_uuid_attr: [],
+          array_of_variant_attr: [],
+          array_of_tuple_attr: [],
+          array_of_point_attr: [],
+          array_of_ring_attr: [],
+          array_of_polygon_attr: [],
+          array_of_multipolygon_attr: [],
+          enum8_attr: e8,
+          enum16_attr: e16
+        }
+
+        assert {:ok, %AllTypes{enum8_attr: ^e8, enum16_attr: ^e16}} =
+                 AllTypes
+                 |> Ash.Changeset.for_create(:create, params)
+                 |> Ash.create()
+      end
     end
   end
 end
