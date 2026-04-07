@@ -54,6 +54,7 @@ defmodule AshClickhouse.TestRepo.Migrations.MigrateResources1 do
       low_cardinality_string_attr LowCardinality(String),
       low_cardinality_nullable_string_attr LowCardinality(Nullable(String)),
       fixed_string_attr FixedString(16),
+      nullable_fixed_string_attr Nullable(FixedString(16)),
       int8_attr Int8,
       nullable_int8_attr Nullable(Int8),
       int16_attr Int16,

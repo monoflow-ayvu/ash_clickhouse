@@ -39,6 +39,11 @@ defmodule AshClickhouse.Test.Resource.AllTypes do
       constraints: [length: 16]
     )
 
+    attribute(:nullable_fixed_string_attr, :ch_fixed_string) do
+      public?(true)
+      constraints(nullable?: true, length: 16)
+    end
+
     for size <- [8, 16, 32, 64, 128, 256] do
       attribute(:"int#{size}_attr", :"ch_int#{size}") do
         public?(true)
