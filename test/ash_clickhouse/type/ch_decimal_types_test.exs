@@ -67,56 +67,56 @@ defmodule AshClickhouse.Type.ChDecimalTypesTest do
 
     test "returns correct ClickHouse types for array version of Decimal32" do
       assert {:array, {:parameterized, {Ch, {:decimal32, 3}}} = subtype} =
-               Ash.Type.storage_type({:array, ChDecimal32}, scale: 3)
+               Ash.Type.storage_type({:array, ChDecimal32}, items: [scale: 3])
 
       assert encode_ch_type({:array, subtype}) == "Array(Decimal(9, 3))"
     end
 
     test "returns correct ClickHouse types for Nullable array version of Decimal32" do
       assert {:array, {:parameterized, {Ch, {:nullable, {:decimal32, 4}}}} = subtype} =
-               Ash.Type.storage_type({:array, ChDecimal32}, scale: 4, nullable?: true)
+               Ash.Type.storage_type({:array, ChDecimal32}, items: [scale: 4, nullable?: true])
 
       assert encode_ch_type({:array, subtype}) == "Array(Nullable(Decimal(9, 4)))"
     end
 
     test "returns correct ClickHouse types for array version of Decimal64" do
       assert {:array, {:parameterized, {Ch, {:decimal64, 2}}} = subtype} =
-               Ash.Type.storage_type({:array, ChDecimal64}, scale: 2)
+               Ash.Type.storage_type({:array, ChDecimal64}, items: [scale: 2])
 
       assert encode_ch_type({:array, subtype}) == "Array(Decimal(18, 2))"
     end
 
     test "returns correct ClickHouse types for Nullable array version of Decimal64" do
       assert {:array, {:parameterized, {Ch, {:nullable, {:decimal64, 6}}}} = subtype} =
-               Ash.Type.storage_type({:array, ChDecimal64}, scale: 6, nullable?: true)
+               Ash.Type.storage_type({:array, ChDecimal64}, items: [scale: 6, nullable?: true])
 
       assert encode_ch_type({:array, subtype}) == "Array(Nullable(Decimal(18, 6)))"
     end
 
     test "returns correct ClickHouse types for array version of Decimal128" do
       assert {:array, {:parameterized, {Ch, {:decimal128, 5}}} = subtype} =
-               Ash.Type.storage_type({:array, ChDecimal128}, scale: 5)
+               Ash.Type.storage_type({:array, ChDecimal128}, items: [scale: 5])
 
       assert encode_ch_type({:array, subtype}) == "Array(Decimal(38, 5))"
     end
 
     test "returns correct ClickHouse types for Nullable array version of Decimal128" do
       assert {:array, {:parameterized, {Ch, {:nullable, {:decimal128, 7}}}} = subtype} =
-               Ash.Type.storage_type({:array, ChDecimal128}, scale: 7, nullable?: true)
+               Ash.Type.storage_type({:array, ChDecimal128}, items: [scale: 7, nullable?: true])
 
       assert encode_ch_type({:array, subtype}) == "Array(Nullable(Decimal(38, 7)))"
     end
 
     test "returns correct ClickHouse types for array version of Decimal256" do
       assert {:array, {:parameterized, {Ch, {:decimal256, 8}}} = subtype} =
-               Ash.Type.storage_type({:array, ChDecimal256}, scale: 8)
+               Ash.Type.storage_type({:array, ChDecimal256}, items: [scale: 8])
 
       assert encode_ch_type({:array, subtype}) == "Array(Decimal(76, 8))"
     end
 
     test "returns correct ClickHouse types for Nullable array version of Decimal256" do
       assert {:array, {:parameterized, {Ch, {:nullable, {:decimal256, 9}}}} = subtype} =
-               Ash.Type.storage_type({:array, ChDecimal256}, scale: 9, nullable?: true)
+               Ash.Type.storage_type({:array, ChDecimal256}, items: [scale: 9, nullable?: true])
 
       assert encode_ch_type({:array, subtype}) == "Array(Nullable(Decimal(76, 9)))"
     end

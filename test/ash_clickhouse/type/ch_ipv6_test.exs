@@ -25,7 +25,7 @@ defmodule AshClickhouse.Type.ChIpv6Test do
 
     test "returns nullable ClickHouse type with nullable constraint for array version" do
       assert {:array, {:parameterized, {Ch, {:nullable, :ipv6}}} = subtype} =
-               Ash.Type.storage_type({:array, ChIPv6}, nullable?: true)
+               Ash.Type.storage_type({:array, ChIPv6}, items: [nullable?: true])
 
       assert encode_ch_type({:array, subtype}) == "Array(Nullable(IPv6))"
     end

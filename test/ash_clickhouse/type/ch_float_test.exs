@@ -42,12 +42,12 @@ defmodule AshClickhouse.Type.ChFloatTest do
 
     test "returns nullable ClickHouse type with nullable constraint for array version" do
       assert {:array, {:parameterized, {Ch, {:nullable, :f32}}} = subtype} =
-               Ash.Type.storage_type({:array, ChFloat32}, nullable?: true)
+               Ash.Type.storage_type({:array, ChFloat32}, items: [nullable?: true])
 
       assert encode_ch_type({:array, subtype}) == "Array(Nullable(Float32))"
 
       assert {:array, {:parameterized, {Ch, {:nullable, :f64}}} = subtype} =
-               Ash.Type.storage_type({:array, ChFloat64}, nullable?: true)
+               Ash.Type.storage_type({:array, ChFloat64}, items: [nullable?: true])
 
       assert encode_ch_type({:array, subtype}) == "Array(Nullable(Float64))"
     end

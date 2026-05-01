@@ -43,21 +43,21 @@ defmodule AshClickhouse.Type.ChDateTime64Test do
 
     test "returns correct ClickHouse type without constraints for array version" do
       assert {:array, {:parameterized, {Ch, {:datetime64, 6}}} = subtype} =
-               Ash.Type.storage_type({:array, ChDateTime64}, precision: 6)
+               Ash.Type.storage_type({:array, ChDateTime64}, items: [precision: 6])
 
       assert encode_ch_type({:array, subtype}) == "Array(DateTime64(6))"
     end
 
     test "returns nullable ClickHouse type with nullable constraint for array version" do
       assert {:array, {:parameterized, {Ch, {:nullable, {:datetime64, 6}}}} = subtype} =
-               Ash.Type.storage_type({:array, ChDateTime64}, precision: 6, nullable?: true)
+               Ash.Type.storage_type({:array, ChDateTime64}, items: [precision: 6, nullable?: true])
 
       assert encode_ch_type({:array, subtype}) == "Array(Nullable(DateTime64(6)))"
     end
 
     test "returns correct ClickHouse type with timezone for array version" do
       assert {:array, {:parameterized, {Ch, {:datetime64, 6, "UTC"}}} = subtype} =
-               Ash.Type.storage_type({:array, ChDateTime64}, precision: 6, timezone: "UTC")
+               Ash.Type.storage_type({:array, ChDateTime64}, items: [precision: 6, timezone: "UTC"])
 
       assert encode_ch_type({:array, subtype}) == "Array(DateTime64(6, 'UTC'))"
     end
@@ -65,9 +65,7 @@ defmodule AshClickhouse.Type.ChDateTime64Test do
     test "returns nullable ClickHouse type with timezone and nullable constraint for array version" do
       assert {:array, {:parameterized, {Ch, {:nullable, {:datetime64, 3, "UTC"}}}} = subtype} =
                Ash.Type.storage_type({:array, ChDateTime64},
-                 precision: 3,
-                 timezone: "UTC",
-                 nullable?: true
+                 items: [precision: 3, timezone: "UTC", nullable?: true]
                )
 
       assert encode_ch_type({:array, subtype}) == "Array(Nullable(DateTime64(3, 'UTC')))"

@@ -27,7 +27,7 @@ defmodule AshClickhouse.Type.ChDecimalTest do
 
     test "returns correct ClickHouse type without constraints for array version" do
       assert {:array, {:parameterized, {Ch, {:decimal, 10, 2}}} = subtype} =
-               Ash.Type.storage_type({:array, ChDecimal}, precision: 10, scale: 2)
+               Ash.Type.storage_type({:array, ChDecimal}, items: [precision: 10, scale: 2])
 
       assert encode_ch_type({:array, subtype}) == "Array(Decimal(10, 2))"
     end
@@ -35,9 +35,7 @@ defmodule AshClickhouse.Type.ChDecimalTest do
     test "returns nullable ClickHouse type with nullable constraint for array version" do
       assert {:array, {:parameterized, {Ch, {:nullable, {:decimal, 18, 4}}}} = subtype} =
                Ash.Type.storage_type({:array, ChDecimal},
-                 precision: 18,
-                 scale: 4,
-                 nullable?: true
+                 items: [precision: 18, scale: 4, nullable?: true]
                )
 
       assert encode_ch_type({:array, subtype}) == "Array(Nullable(Decimal(18, 4)))"

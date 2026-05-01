@@ -102,32 +102,32 @@ defmodule AshClickhouse.Type.ChIntTest do
 
     test "returns nullable ClickHouse type with nullable constraint for array version" do
       assert {:array, {:parameterized, {Ch, {:nullable, :i8}}} = subtype} =
-               Ash.Type.storage_type({:array, ChInt8}, nullable?: true)
+               Ash.Type.storage_type({:array, ChInt8}, items: [nullable?: true])
 
       assert encode_ch_type({:array, subtype}) == "Array(Nullable(Int8))"
 
       assert {:array, {:parameterized, {Ch, {:nullable, :i16}}} = subtype} =
-               Ash.Type.storage_type({:array, ChInt16}, nullable?: true)
+               Ash.Type.storage_type({:array, ChInt16}, items: [nullable?: true])
 
       assert encode_ch_type({:array, subtype}) == "Array(Nullable(Int16))"
 
       assert {:array, {:parameterized, {Ch, {:nullable, :i32}}} = subtype} =
-               Ash.Type.storage_type({:array, ChInt32}, nullable?: true)
+               Ash.Type.storage_type({:array, ChInt32}, items: [nullable?: true])
 
       assert encode_ch_type({:array, subtype}) == "Array(Nullable(Int32))"
 
       assert {:array, {:parameterized, {Ch, {:nullable, :i64}}} = subtype} =
-               Ash.Type.storage_type({:array, ChInt64}, nullable?: true)
+               Ash.Type.storage_type({:array, ChInt64}, items: [nullable?: true])
 
       assert encode_ch_type({:array, subtype}) == "Array(Nullable(Int64))"
 
       assert {:array, {:parameterized, {Ch, {:nullable, :i128}}} = subtype} =
-               Ash.Type.storage_type({:array, ChInt128}, nullable?: true)
+               Ash.Type.storage_type({:array, ChInt128}, items: [nullable?: true])
 
       assert encode_ch_type({:array, subtype}) == "Array(Nullable(Int128))"
 
       assert {:array, {:parameterized, {Ch, {:nullable, :i256}}} = subtype} =
-               Ash.Type.storage_type({:array, ChInt256}, nullable?: true)
+               Ash.Type.storage_type({:array, ChInt256}, items: [nullable?: true])
 
       assert encode_ch_type({:array, subtype}) == "Array(Nullable(Int256))"
     end

@@ -29,7 +29,7 @@ defmodule AshClickhouse.Type.ChAtomTest do
 
     test "returns nullable ClickHouse type with nullable constraint for array version" do
       assert {:array, {:parameterized, {Ch, {:low_cardinality, {:nullable, :string}}}} = subtype} =
-               Ash.Type.storage_type({:array, ChAtom}, nullable?: true)
+               Ash.Type.storage_type({:array, ChAtom}, items: [nullable?: true])
 
       assert encode_ch_type({:array, subtype}) == "Array(LowCardinality(Nullable(String)))"
     end

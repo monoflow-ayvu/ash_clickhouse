@@ -27,7 +27,7 @@ defmodule AshClickhouse.Type.ChJsonTest do
 
     test "returns correct ClickHouse type for array version with nullable constraint" do
       assert {:array, {:parameterized, {Ch, {:nullable, :json}}} = subtype} =
-               Ash.Type.storage_type({:array, ChJSON}, nullable?: true)
+               Ash.Type.storage_type({:array, ChJSON}, items: [nullable?: true])
 
       assert encode_ch_type({:array, subtype}) == "Array(Nullable(JSON))"
     end

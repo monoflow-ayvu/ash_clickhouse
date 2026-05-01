@@ -26,7 +26,7 @@ defmodule AshClickhouse.Type.ChBoolTest do
 
     test "returns nullable ClickHouse type with nullable constraint for array version" do
       assert {:array, {:parameterized, {Ch, {:nullable, :boolean}}} = subtype} =
-               Ash.Type.storage_type({:array, ChBool}, nullable?: true)
+               Ash.Type.storage_type({:array, ChBool}, items: [nullable?: true])
 
       assert encode_ch_type({:array, subtype}) == "Array(Nullable(Bool))"
     end

@@ -26,7 +26,7 @@ defmodule AshClickhouse.Type.ChDate32Test do
 
     test "returns nullable ClickHouse type with nullable constraint for array version" do
       assert {:array, {:parameterized, {Ch, {:nullable, :date32}}} = subtype} =
-               Ash.Type.storage_type({:array, ChDate32}, nullable?: true)
+               Ash.Type.storage_type({:array, ChDate32}, items: [nullable?: true])
 
       assert encode_ch_type({:array, subtype}) == "Array(Nullable(Date32))"
     end

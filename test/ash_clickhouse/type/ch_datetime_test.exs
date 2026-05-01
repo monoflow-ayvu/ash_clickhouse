@@ -42,21 +42,21 @@ defmodule AshClickhouse.Type.ChDateTimeTest do
 
     test "returns nullable ClickHouse type with nullable constraint for array version" do
       assert {:array, {:parameterized, {Ch, {:nullable, :datetime}}} = subtype} =
-               Ash.Type.storage_type({:array, ChDateTime}, nullable?: true)
+               Ash.Type.storage_type({:array, ChDateTime}, items: [nullable?: true])
 
       assert encode_ch_type({:array, subtype}) == "Array(Nullable(DateTime))"
     end
 
     test "returns correct ClickHouse type with timezone for array version" do
       assert {:array, {:parameterized, {Ch, {:datetime, "UTC"}}} = subtype} =
-               Ash.Type.storage_type({:array, ChDateTime}, timezone: "UTC")
+               Ash.Type.storage_type({:array, ChDateTime}, items: [timezone: "UTC"])
 
       assert encode_ch_type({:array, subtype}) == "Array(DateTime('UTC'))"
     end
 
     test "returns nullable ClickHouse type with timezone and nullable constraint for array version" do
       assert {:array, {:parameterized, {Ch, {:nullable, {:datetime, "UTC"}}}} = subtype} =
-               Ash.Type.storage_type({:array, ChDateTime}, timezone: "UTC", nullable?: true)
+               Ash.Type.storage_type({:array, ChDateTime}, items: [timezone: "UTC", nullable?: true])
 
       assert encode_ch_type({:array, subtype}) == "Array(Nullable(DateTime('UTC')))"
     end

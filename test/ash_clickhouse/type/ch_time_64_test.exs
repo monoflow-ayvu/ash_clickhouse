@@ -30,7 +30,7 @@ defmodule AshClickhouse.Type.ChTime64Test do
 
     test "returns correct type for array" do
       assert {:array, {:parameterized, {Ch, _}} = subtype} =
-               Ash.Type.storage_type({:array, ChTime64}, precision: 3)
+               Ash.Type.storage_type({:array, ChTime64}, items: [precision: 3])
 
       assert encode_ch_type({:array, subtype}) == "Array(Time64(3))"
     end
