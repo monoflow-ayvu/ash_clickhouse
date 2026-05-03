@@ -56,7 +56,9 @@ defmodule AshClickhouse.Type.ChDateTimeTest do
 
     test "returns nullable ClickHouse type with timezone and nullable constraint for array version" do
       assert {:array, {:parameterized, {Ch, {:nullable, {:datetime, "UTC"}}}} = subtype} =
-               Ash.Type.storage_type({:array, ChDateTime}, items: [timezone: "UTC", nullable?: true])
+               Ash.Type.storage_type({:array, ChDateTime},
+                 items: [timezone: "UTC", nullable?: true]
+               )
 
       assert encode_ch_type({:array, subtype}) == "Array(Nullable(DateTime('UTC')))"
     end
