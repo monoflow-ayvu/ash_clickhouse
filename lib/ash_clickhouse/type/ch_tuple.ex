@@ -27,7 +27,7 @@ defmodule AshClickhouse.Type.ChTuple do
       end
       ```
       """
-    ],
+    ]
   ]
 
   @moduledoc """
