@@ -200,7 +200,6 @@ defmodule AshClickhouse.Type.ChUintTest do
     end
   end
 
-
   describe "cast_stored/2" do
     test "casts valid integer correctly" do
       assert Ash.Type.cast_stored(ChUint8, 123, []) == {:ok, 123}
@@ -265,68 +264,121 @@ defmodule AshClickhouse.Type.ChUintTest do
   describe "apply_constraints/2" do
     test "applies constraint max correctly" do
       assert Ash.Type.apply_constraints(ChUint8, 99, max: 100) == {:ok, 99}
-      assert Ash.Type.apply_constraints(ChUint8, 101, max: 100) == {:error, [[message: "must be less than or equal to %{max}", max: 100]]}
 
-      assert Ash.Type.apply_constraints(ChUint16, 2**16-15, max: 2**16-10) == {:ok, 2**16-15}
-      assert Ash.Type.apply_constraints(ChUint16, 2**16-5, max: 2**16-10) == {:error, [[message: "must be less than or equal to %{max}", max: 2**16-10]]}
+      assert Ash.Type.apply_constraints(ChUint8, 101, max: 100) ==
+               {:error, [[message: "must be less than or equal to %{max}", max: 100]]}
 
-      assert Ash.Type.apply_constraints(ChUint32, 2**32-15, max: 2**32-10) == {:ok, 2**32-15}
-      assert Ash.Type.apply_constraints(ChUint32, 2**32-5, max: 2**32-10) == {:error, [[message: "must be less than or equal to %{max}", max: 2**32-10]]}
+      assert Ash.Type.apply_constraints(ChUint16, 2 ** 16 - 15, max: 2 ** 16 - 10) ==
+               {:ok, 2 ** 16 - 15}
 
-      assert Ash.Type.apply_constraints(ChUint64, 2**64-15, max: 2**64-10) == {:ok, 2**64-15}
-      assert Ash.Type.apply_constraints(ChUint64, 2**64-5, max: 2**64-10) == {:error, [[message: "must be less than or equal to %{max}", max: 2**64-10]]}
+      assert Ash.Type.apply_constraints(ChUint16, 2 ** 16 - 5, max: 2 ** 16 - 10) ==
+               {:error, [[message: "must be less than or equal to %{max}", max: 2 ** 16 - 10]]}
 
-      assert Ash.Type.apply_constraints(ChUint128, 2**128-15, max: 2**128-10) == {:ok, 2**128-15}
-      assert Ash.Type.apply_constraints(ChUint128, 2**128-5, max: 2**128-10) == {:error, [[message: "must be less than or equal to %{max}", max: 2**128-10]]}
+      assert Ash.Type.apply_constraints(ChUint32, 2 ** 32 - 15, max: 2 ** 32 - 10) ==
+               {:ok, 2 ** 32 - 15}
 
-      assert Ash.Type.apply_constraints(ChUint256, 2**256-15, max: 2**256-10) == {:ok, 2**256-15}
-      assert Ash.Type.apply_constraints(ChUint256, 2**256-5, max: 2**256-10) == {:error, [[message: "must be less than or equal to %{max}", max: 2**256-10]]}
+      assert Ash.Type.apply_constraints(ChUint32, 2 ** 32 - 5, max: 2 ** 32 - 10) ==
+               {:error, [[message: "must be less than or equal to %{max}", max: 2 ** 32 - 10]]}
+
+      assert Ash.Type.apply_constraints(ChUint64, 2 ** 64 - 15, max: 2 ** 64 - 10) ==
+               {:ok, 2 ** 64 - 15}
+
+      assert Ash.Type.apply_constraints(ChUint64, 2 ** 64 - 5, max: 2 ** 64 - 10) ==
+               {:error, [[message: "must be less than or equal to %{max}", max: 2 ** 64 - 10]]}
+
+      assert Ash.Type.apply_constraints(ChUint128, 2 ** 128 - 15, max: 2 ** 128 - 10) ==
+               {:ok, 2 ** 128 - 15}
+
+      assert Ash.Type.apply_constraints(ChUint128, 2 ** 128 - 5, max: 2 ** 128 - 10) ==
+               {:error, [[message: "must be less than or equal to %{max}", max: 2 ** 128 - 10]]}
+
+      assert Ash.Type.apply_constraints(ChUint256, 2 ** 256 - 15, max: 2 ** 256 - 10) ==
+               {:ok, 2 ** 256 - 15}
+
+      assert Ash.Type.apply_constraints(ChUint256, 2 ** 256 - 5, max: 2 ** 256 - 10) ==
+               {:error, [[message: "must be less than or equal to %{max}", max: 2 ** 256 - 10]]}
     end
 
     test "applies constraint min correctly" do
       assert Ash.Type.apply_constraints(ChUint8, 10, min: 10) == {:ok, 10}
-      assert Ash.Type.apply_constraints(ChUint8, 5, min: 10) == {:error, [[message: "must be greater than or equal to %{min}", min: 10]]}
+
+      assert Ash.Type.apply_constraints(ChUint8, 5, min: 10) ==
+               {:error, [[message: "must be greater than or equal to %{min}", min: 10]]}
 
       assert Ash.Type.apply_constraints(ChUint16, 10, min: 10) == {:ok, 10}
-      assert Ash.Type.apply_constraints(ChUint16, 5, min: 10) == {:error, [[message: "must be greater than or equal to %{min}", min: 10]]}
+
+      assert Ash.Type.apply_constraints(ChUint16, 5, min: 10) ==
+               {:error, [[message: "must be greater than or equal to %{min}", min: 10]]}
 
       assert Ash.Type.apply_constraints(ChUint32, 10, min: 10) == {:ok, 10}
-      assert Ash.Type.apply_constraints(ChUint32, 5, min: 10) == {:error, [[message: "must be greater than or equal to %{min}", min: 10]]}
+
+      assert Ash.Type.apply_constraints(ChUint32, 5, min: 10) ==
+               {:error, [[message: "must be greater than or equal to %{min}", min: 10]]}
 
       assert Ash.Type.apply_constraints(ChUint64, 10, min: 10) == {:ok, 10}
-      assert Ash.Type.apply_constraints(ChUint64, 5, min: 10) == {:error, [[message: "must be greater than or equal to %{min}", min: 10]]}
+
+      assert Ash.Type.apply_constraints(ChUint64, 5, min: 10) ==
+               {:error, [[message: "must be greater than or equal to %{min}", min: 10]]}
 
       assert Ash.Type.apply_constraints(ChUint128, 10, min: 10) == {:ok, 10}
-      assert Ash.Type.apply_constraints(ChUint128, 5, min: 10) == {:error, [[message: "must be greater than or equal to %{min}", min: 10]]}
+
+      assert Ash.Type.apply_constraints(ChUint128, 5, min: 10) ==
+               {:error, [[message: "must be greater than or equal to %{min}", min: 10]]}
 
       assert Ash.Type.apply_constraints(ChUint256, 10, min: 10) == {:ok, 10}
-      assert Ash.Type.apply_constraints(ChUint256, 5, min: 10) == {:error, [[message: "must be greater than or equal to %{min}", min: 10]]}
+
+      assert Ash.Type.apply_constraints(ChUint256, 5, min: 10) ==
+               {:error, [[message: "must be greater than or equal to %{min}", min: 10]]}
     end
 
     test "applies constraint min and max correctly" do
       assert Ash.Type.apply_constraints(ChUint8, 10, min: 10, max: 100) == {:ok, 10}
-      assert Ash.Type.apply_constraints(ChUint8, 101, min: 10, max: 100) == {:error, [[message: "must be less than or equal to %{max}", max: 100]]}
-      assert Ash.Type.apply_constraints(ChUint8, 9, min: 10, max: 100) == {:error, [[message: "must be greater than or equal to %{min}", min: 10]]}
+
+      assert Ash.Type.apply_constraints(ChUint8, 101, min: 10, max: 100) ==
+               {:error, [[message: "must be less than or equal to %{max}", max: 100]]}
+
+      assert Ash.Type.apply_constraints(ChUint8, 9, min: 10, max: 100) ==
+               {:error, [[message: "must be greater than or equal to %{min}", min: 10]]}
 
       assert Ash.Type.apply_constraints(ChUint16, 10, min: 10, max: 100) == {:ok, 10}
-      assert Ash.Type.apply_constraints(ChUint16, 101, min: 10, max: 100) == {:error, [[message: "must be less than or equal to %{max}", max: 100]]}
-      assert Ash.Type.apply_constraints(ChUint16, 9, min: 10, max: 100) == {:error, [[message: "must be greater than or equal to %{min}", min: 10]]}
+
+      assert Ash.Type.apply_constraints(ChUint16, 101, min: 10, max: 100) ==
+               {:error, [[message: "must be less than or equal to %{max}", max: 100]]}
+
+      assert Ash.Type.apply_constraints(ChUint16, 9, min: 10, max: 100) ==
+               {:error, [[message: "must be greater than or equal to %{min}", min: 10]]}
 
       assert Ash.Type.apply_constraints(ChUint32, 10, min: 10, max: 100) == {:ok, 10}
-      assert Ash.Type.apply_constraints(ChUint32, 101, min: 10, max: 100) == {:error, [[message: "must be less than or equal to %{max}", max: 100]]}
-      assert Ash.Type.apply_constraints(ChUint32, 9, min: 10, max: 100) == {:error, [[message: "must be greater than or equal to %{min}", min: 10]]}
+
+      assert Ash.Type.apply_constraints(ChUint32, 101, min: 10, max: 100) ==
+               {:error, [[message: "must be less than or equal to %{max}", max: 100]]}
+
+      assert Ash.Type.apply_constraints(ChUint32, 9, min: 10, max: 100) ==
+               {:error, [[message: "must be greater than or equal to %{min}", min: 10]]}
 
       assert Ash.Type.apply_constraints(ChUint64, 10, min: 10, max: 100) == {:ok, 10}
-      assert Ash.Type.apply_constraints(ChUint64, 101, min: 10, max: 100) == {:error, [[message: "must be less than or equal to %{max}", max: 100]]}
-      assert Ash.Type.apply_constraints(ChUint64, 9, min: 10, max: 100) == {:error, [[message: "must be greater than or equal to %{min}", min: 10]]}
+
+      assert Ash.Type.apply_constraints(ChUint64, 101, min: 10, max: 100) ==
+               {:error, [[message: "must be less than or equal to %{max}", max: 100]]}
+
+      assert Ash.Type.apply_constraints(ChUint64, 9, min: 10, max: 100) ==
+               {:error, [[message: "must be greater than or equal to %{min}", min: 10]]}
 
       assert Ash.Type.apply_constraints(ChUint128, 10, min: 10, max: 100) == {:ok, 10}
-      assert Ash.Type.apply_constraints(ChUint128, 101, min: 10, max: 100) == {:error, [[message: "must be less than or equal to %{max}", max: 100]]}
-      assert Ash.Type.apply_constraints(ChUint128, 9, min: 10, max: 100) == {:error, [[message: "must be greater than or equal to %{min}", min: 10]]}
+
+      assert Ash.Type.apply_constraints(ChUint128, 101, min: 10, max: 100) ==
+               {:error, [[message: "must be less than or equal to %{max}", max: 100]]}
+
+      assert Ash.Type.apply_constraints(ChUint128, 9, min: 10, max: 100) ==
+               {:error, [[message: "must be greater than or equal to %{min}", min: 10]]}
 
       assert Ash.Type.apply_constraints(ChUint256, 10, min: 10, max: 100) == {:ok, 10}
-      assert Ash.Type.apply_constraints(ChUint256, 101, min: 10, max: 100) == {:error, [[message: "must be less than or equal to %{max}", max: 100]]}
-      assert Ash.Type.apply_constraints(ChUint256, 9, min: 10, max: 100) == {:error, [[message: "must be greater than or equal to %{min}", min: 10]]}
+
+      assert Ash.Type.apply_constraints(ChUint256, 101, min: 10, max: 100) ==
+               {:error, [[message: "must be less than or equal to %{max}", max: 100]]}
+
+      assert Ash.Type.apply_constraints(ChUint256, 9, min: 10, max: 100) ==
+               {:error, [[message: "must be greater than or equal to %{min}", min: 10]]}
     end
   end
 end
