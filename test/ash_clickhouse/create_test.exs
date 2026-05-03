@@ -1220,8 +1220,14 @@ defmodule AshClickhouse.CreateTest do
         nullable_decimal64_attr: Decimal.new("3.0"),
         decimal128_attr: Decimal.new("0.12345678912345678912345678912345678912"),
         nullable_decimal128_attr: Decimal.new("0.12345678912345678912345678912345678912"),
-        decimal256_attr: Decimal.new("0.1234567891234567891234567891234567891234567891234567891234567891234567891234"),
-        nullable_decimal256_attr: Decimal.new("0.1234567891234567891234567891234567891234567891234567891234567891234567891234"),
+        decimal256_attr:
+          Decimal.new(
+            "0.1234567891234567891234567891234567891234567891234567891234567891234567891234"
+          ),
+        nullable_decimal256_attr:
+          Decimal.new(
+            "0.1234567891234567891234567891234567891234567891234567891234567891234567891234"
+          ),
         json_attr: %{"key" => "value"},
         nullable_json_attr: %{"nested" => %{"a" => 1}},
         map_attr: %{"foo" => "a", "bar" => "b", "baz" => "c"},
@@ -1269,7 +1275,11 @@ defmodule AshClickhouse.CreateTest do
         array_of_nullable_decimal64_attr: [nil],
         array_of_decimal128_attr: [Decimal.new("0.12345678912345678912345678912345678912")],
         array_of_nullable_decimal128_attr: [nil],
-        array_of_decimal256_attr: [Decimal.new("0.1234567891234567891234567891234567891234567891234567891234567891234567891234")],
+        array_of_decimal256_attr: [
+          Decimal.new(
+            "0.1234567891234567891234567891234567891234567891234567891234567891234567891234"
+          )
+        ],
         array_of_nullable_decimal256_attr: [nil],
         array_of_json_attr: [%{"x" => 1}],
         array_of_nullable_json_attr: [nil],
@@ -1290,25 +1300,26 @@ defmodule AshClickhouse.CreateTest do
         enum16_attr: :enum16_zero
       }
 
-      assert {:ok, %AllTypes{
-        string_attr: "Nullable Fields Test",
-        nullable_string_attr: "Not nil",
-        nullable_fixed_string_attr: "CCCCCCCCCCCCCCCC",
-        nullable_int8_attr: 42,
-        nullable_uint8_attr: 255,
-        nullable_float32_attr: _,
-        nullable_float64_attr: 3.14159,
-        nullable_date_attr: ~D[2024-12-31],
-        nullable_uuid_attr: "550e8400-e29b-41d4-a716-446655440001",
-        nullable_ipv4_attr: _,
-        nullable_json_attr: %{"nested" => %{"a" => 1}},
-        bool_attr: false,
-        enum8_attr: :enum8_zero,
-        enum16_attr: :enum16_zero
-      }} =
-        AllTypes
-        |> Ash.Changeset.for_create(:create, params)
-        |> Ash.create()
+      assert {:ok,
+              %AllTypes{
+                string_attr: "Nullable Fields Test",
+                nullable_string_attr: "Not nil",
+                nullable_fixed_string_attr: "CCCCCCCCCCCCCCCC",
+                nullable_int8_attr: 42,
+                nullable_uint8_attr: 255,
+                nullable_float32_attr: _,
+                nullable_float64_attr: 3.14159,
+                nullable_date_attr: ~D[2024-12-31],
+                nullable_uuid_attr: "550e8400-e29b-41d4-a716-446655440001",
+                nullable_ipv4_attr: _,
+                nullable_json_attr: %{"nested" => %{"a" => 1}},
+                bool_attr: false,
+                enum8_attr: :enum8_zero,
+                enum16_attr: :enum16_zero
+              }} =
+               AllTypes
+               |> Ash.Changeset.for_create(:create, params)
+               |> Ash.create()
     end
 
     @tag timeout: 100_000
@@ -1347,7 +1358,10 @@ defmodule AshClickhouse.CreateTest do
           decimal32_attr: Decimal.new("0.1"),
           decimal64_attr: Decimal.new("0.1"),
           decimal128_attr: Decimal.new("0.12345678912345678912345678912345678912"),
-          decimal256_attr: Decimal.new("0.1234567891234567891234567891234567891234567891234567891234567891234567891234"),
+          decimal256_attr:
+            Decimal.new(
+              "0.1234567891234567891234567891234567891234567891234567891234567891234567891234"
+            ),
           json_attr: %{},
           map_attr: %{"foo" => "a", "bar" => "b", "baz" => "c"},
           ipv4_attr: "127.0.0.1",
