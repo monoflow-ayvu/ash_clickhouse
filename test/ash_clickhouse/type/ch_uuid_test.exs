@@ -31,6 +31,7 @@ defmodule AshClickhouse.Type.ChUuidTest do
       assert encode_ch_type(type) == "LowCardinality(Nullable(UUID))"
     end
   end
+
   describe "matches_type?/2" do
     test "returns true for UUIDs" do
       assert Ash.Type.matches_type?(ChUUID, "123e4567-e89b-12d3-a456-426614174000", [])
@@ -46,7 +47,8 @@ defmodule AshClickhouse.Type.ChUuidTest do
 
   describe "cast_input/2" do
     test "casts UUIDs" do
-      assert Ash.Type.cast_input(ChUUID, "123e4567-e89b-12d3-a456-426614174000", []) == {:ok, "123e4567-e89b-12d3-a456-426614174000"}
+      assert Ash.Type.cast_input(ChUUID, "123e4567-e89b-12d3-a456-426614174000", []) ==
+               {:ok, "123e4567-e89b-12d3-a456-426614174000"}
     end
 
     test "casts nil to nil" do

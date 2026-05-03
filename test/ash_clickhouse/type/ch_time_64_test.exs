@@ -24,7 +24,9 @@ defmodule AshClickhouse.Type.ChTime64Test do
     end
 
     test "returns nullable type with nullable? constraint" do
-      assert {:parameterized, {Ch, _}} = type = ChTime64.storage_type(precision: 3, nullable?: true)
+      assert {:parameterized, {Ch, _}} =
+               type = ChTime64.storage_type(precision: 3, nullable?: true)
+
       assert encode_ch_type(type) == "Nullable(Time64(3))"
     end
 

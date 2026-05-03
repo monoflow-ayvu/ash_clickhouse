@@ -47,14 +47,18 @@ defmodule AshClickhouse.Type.ChFixedStringTest do
 
     test "returns nullable ClickHouse type with nullable constraint for array version" do
       assert {:array, {:parameterized, {Ch, {:nullable, {:fixed_string, 32}}}} = subtype} =
-               Ash.Type.storage_type({:array, ChFixedString}, items: [length: 32, nullable?: true])
+               Ash.Type.storage_type({:array, ChFixedString},
+                 items: [length: 32, nullable?: true]
+               )
 
       assert encode_ch_type({:array, subtype}) == "Array(Nullable(FixedString(32)))"
     end
 
     test "returns low cardinality ClickHouse type with low_cardinality constraint for array version" do
       assert {:array, {:parameterized, {Ch, {:low_cardinality, {:fixed_string, 24}}}} = subtype} =
-               Ash.Type.storage_type({:array, ChFixedString}, items: [length: 24, low_cardinality?: true])
+               Ash.Type.storage_type({:array, ChFixedString},
+                 items: [length: 24, low_cardinality?: true]
+               )
 
       assert encode_ch_type({:array, subtype}) == "Array(LowCardinality(FixedString(24)))"
     end
