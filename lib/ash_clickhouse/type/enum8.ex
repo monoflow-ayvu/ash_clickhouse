@@ -168,9 +168,7 @@ defmodule AshClickhouse.Type.ChEnum8 do
 
       @impl Ash.Type
       def storage_type(constraints) do
-        constraints
-        |> ch_type()
-        |> Ch.type()
+        {:parameterized, {Ch, ch_type(constraints)}}
       end
 
       def ch_type(_constraints) do

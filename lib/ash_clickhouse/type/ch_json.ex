@@ -26,7 +26,7 @@ defmodule AshClickhouse.Type.ChJSON do
   def constraints, do: @constraints
 
   @impl true
-  def storage_type(constraints), do: Ch.type(ch_type(constraints))
+  def storage_type(constraints), do: {:parameterized, {Ch, ch_type(constraints)}}
 
   def ch_type(constraints) do
     Ch.Types.json()

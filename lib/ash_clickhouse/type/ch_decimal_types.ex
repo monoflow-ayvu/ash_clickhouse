@@ -81,9 +81,7 @@ for {precision, max_scale} <- [{32, 9}, {64, 18}, {128, 38}, {256, 76}] do
 
     @impl true
     def storage_type(constraints) do
-      constraints
-      |> ch_type()
-      |> Ch.type()
+      {:parameterized, {Ch, ch_type(constraints)}}
     end
 
     def ch_type(constraints) do

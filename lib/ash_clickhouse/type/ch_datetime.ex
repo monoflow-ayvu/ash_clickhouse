@@ -72,9 +72,7 @@ defmodule AshClickhouse.Type.ChDateTime do
 
   @impl true
   def storage_type(constraints) do
-    constraints
-    |> ch_type()
-    |> Ch.type()
+    {:parameterized, {Ch, ch_type(constraints)}}
   end
 
   def ch_type(constraints) do

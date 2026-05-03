@@ -114,9 +114,7 @@ for size <- [8, 16, 32, 64, 128, 256] do
 
     @impl true
     def storage_type(constraints) do
-      constraints
-      |> ch_type()
-      |> Ch.type()
+      {:parameterized, {Ch, ch_type(constraints)}}
     end
 
     def ch_type(constraints) do
