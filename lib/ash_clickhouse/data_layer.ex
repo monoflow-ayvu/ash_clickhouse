@@ -317,6 +317,7 @@ defmodule AshClickhouse.DataLayer do
   def can?(_, :aggregate), do: true
   def can?(_, {:aggregate, _}), do: true
   def can?(_, {:aggregate_type, _}), do: true
+  def can?(_, {:query_aggregate, _}), do: true
   def can?(_, :multitenancy), do: true
   def can?(_, _), do: false
 
@@ -580,14 +581,22 @@ defmodule AshClickhouse.DataLayer do
 
   @doc false
   @impl true
+  def limit(query, nil, _), do: {:ok, query}
+
   def limit(query, limit, _resource) do
-    {:ok, Map.update!(query, :__ash_bindings__, &Map.put(&1, :limit, limit))}
+    {:ok, Ecto.Query.from(row in query, limit: ^limit)}
   end
 
   @doc false
   @impl true
+  def offset(query, nil, _), do: query
+
+  def offset(%{offset: old_offset} = query, 0, _resource) when old_offset in [0, nil] do
+    {:ok, query}
+  end
+
   def offset(query, offset, _resource) do
-    {:ok, Map.update!(query, :__ash_bindings__, &Map.put(&1, :offset, offset))}
+    {:ok, Ecto.Query.from(row in query, offset: ^offset)}
   end
 
   @impl true
