@@ -34,7 +34,8 @@ defmodule AshClickhouse.MixProject do
       {:jason, "~> 1.0"},
       {:ash, ash_version("~> 3.5")},
       {:ash_sql, ash_sql_version("~> 0.2")},
-      {:excoveralls, "~> 0.18", only: :test}
+      {:excoveralls, "~> 0.18", only: :test},
+      {:machete, "~> 0.3.11", only: :test}
       # {:git_ops, "~> 2.5", only: [:dev, :test]},
       # {:ex_doc, "~> 0.37-rc", only: [:dev, :test], runtime: false},
       # {:ex_check, "~> 0.14", only: [:dev, :test]},
