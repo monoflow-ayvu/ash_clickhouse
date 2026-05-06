@@ -29,7 +29,7 @@ defmodule AshClickhouse.MixProject do
   defp deps do
     [
       {:ecto_sql, "~> 3.13"},
-      {:ecto_ch, "~> 0.8"},
+      {:ecto_ch, "~> 0.9"},
       {:ecto, "~> 3.13"},
       {:jason, "~> 1.0"},
       {:ash, ash_version("~> 3.5")},
